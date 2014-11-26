@@ -1,118 +1,138 @@
 __module_name__ = "Galgje"
 __module_version__ = "0.2"
 __module_description__ = "Bot waarmee galgje gespeeld kan worden. Reageert op het woord galgje."
-__author__ = "DaneelBaley"
+__author__ = "Hans Kalle"
+
+
 
 class Hangman:
-	def __init__(this, player):
-		import random;
-		wordlist = ["stootjuk", "wissel", "spoortak", "isolatielas", "profielvrij", "aankondigingstijd", "sein", "overweginstallatie"]
-		this.player = player
-		this.word = wordlist[random.randint(0,len(wordlist)-1)]
-		this.used_chars = set([])
-		this.guesses_left = 7
-		this.done = False
-		this.won = False
+	def __init__(self, player):
+		import random
+		wordlist = ["stootjuk", "wissel", "spoortak", "isolatielas", "profielvrij", "aankondigingstijd", "sein", "prorail", "services", "raildocs", "fuzzy", "overweginstallatie"]
+		self.player = player
+		self.used_chars = set([])
+		self.guesses_left = 7
+		self.done = False
+		self.won = False
 	
-	def startGame(this):
-		return "Nou, " + this.player + ", ik heb een woord van " + str(len(this.word)) + " letters in gedachten. Roep maar een letter."
+	def startGame(self):
+		self.word = wordlist[random.randint(0,len(wordlist)-1)]
+		return "Nou, " + self.player + ", ik heb een woord van " + str(len(self.word)) + " letters in gedachten. Roep maar een letter."
 
-	def isDone(this):
-		return this.done
-
-	def doMove(this, character):
-		if this.done:
-			if this.won:
-				return "Je hebt het spel al gewonnen," + this.player + "."
-			else:
-				return "Je hebt het spel al verloren," + this.player + "."
-		else:
+	def doMove(self, character):
+		if not self.done:
 			character = character.lower()
-			if character in this.used_chars:
-				return this.wrongMove("Je hebt de " + character + " al gebruikt, " + this.player + "!")
+			if character in self.used_chars:
+				return self.wrongMove("Je hebt de " + character + " al gebruikt, " + self.player + "!")
 			else:
-				this.used_chars.add(character)
-				if character in this.word:
-					return this.rightMove("Er zit inderdaad een " + character + " in het woord, " + this.player + ": ")
+				self.used_chars.add(character)
+				if character in self.word:
+					return self.rightMove("Er zit inderdaad een " + character + " in het woord, " + self.player + ": ")
 				else:
-					return this.wrongMove("Er zit geen " + character + " in het woord, " + this.player + ".")
-
-	def wrongMove(this, message):
-		this.guesses_left -= 1
-		if this.guesses_left == 0:
-			this.done = True
-			this.won = False
-			return message + " Helaas, je verliest. Het woord was " + this.word + "."
+					return self.wrongMove("Er zit geen " + character + " in het woord, " + self.player + ".")
 		else:
-			return message + " Je hebt nog " + str(this.guesses_left) + " beurten over."
+			if self.won:
+				return "Je hebt het spel al gewonnen," + self.player + "."
+			else:
+				return "Je hebt het spel al verloren," + self.player + "."
 
-	def rightMove(this, message):
-		missing_chars = 0
-		for character in this.word:
-			if character in this.used_chars:
+	def wrongMove(self, message):
+		self.guesses_left -= 1
+		if self.guesses_left == 0:
+			self.done = True
+			self.won = False
+			return message + " Helaas, je verliest. Het woord was " + self.word + "."
+		else:
+			return message + " Je hebt nog " + str(self.guesses_left) + " beurten over."
+
+	def rightMove(self, message):
+		missingCharacters = 0
+		for character in self.word:
+			if character in self.used_chars:
 				message = message + character
 			else:
-				missing_chars += 1
 				message = message + "."
+				missingCharacters += 1
 		message = message
-		if missing_chars == 0:
+		if missingCharacters == 0:
 			message = message + ". Gefeliciteerd! Je hebt gewonnen."
-			this.done = True
-			this.won = True
+			self.done = True
+			self.won = True
 		return message
 
-class HangmanGameDirector:
-	def __init__(this, streamer):
-		this.games = {}
-		this.streamer = streamer
+	def isDone(self):
+		return self.done
 
-	def parse(this, nick, line):
+
+
+class HangmanGameDirector:
+	def __init__(self, streamer):
+		self.streamer = streamer
+		self.games = {}
+
+	def parse(self, nick, line):
 		message = ''
-		if this.hasActiveGameFor(nick):
-			if this.singleCharacterResponse(line):
-				message = this.games[nick].doMove(line)
-				if this.games[nick].isDone():
-					this.endGame(nick)
+		if self.hasActiveGameFor(nick):
+			if self.singleCharacterResponse(line):
+				game = self.games[nick]
+				message = game.doMove(line)
+				if game.isDone():
+					self.endGame(nick)
 		else:
 			if "galgje" in line.split():
-				this.newGame(nick)
-				message = this.games[nick].startGame()
+				game = self.newGame(nick)
+				message = game.startGame()
 		if message != '':
-			this.streamer.output(message)
-			
-	def pruneGames(this, activeUsers):
-		for games in this.games:
-			if games.player not in activeUsers:
-				this.endGame(games.player)
+			self.streamer.output(message)
 
-	def hasActiveGameFor(this, nick):
-		return nick in this.games
+	def newGame(self, nick):
+		game = Hangman(nick)
+		self.games[nick] = game
+		return game
 
-	def singleCharacterResponse(this, line):
+	def endGame(self, nick):
+		self.games.pop(nick)
+
+	def pruneGames(self, activeNicks):
+		for games in self.games:
+			if games.player not in activeNicks:
+				self.endGame(games.player)
+
+	def hasActiveGameFor(self, nick):
+		return nick in self.games
+
+	def singleCharacterResponse(self, line):
 		return len(line) == 1
 
-	def newGame(this, nick):
-		this.games[nick] = Hangman(nick)
-
-	def endGame(this, nick):
-		this.games.pop(nick)
 
 
 import hexchat;
 
 class HexchatStreamer:
-	def output(this, message):
+	def output(self, message):
 		hexchat.command("say " + message)
 
 gameDirector = HangmanGameDirector(HexchatStreamer())
 
-def check_line(word, word_eol, userdata):
+def onMessage(word, word_eol, userdata):
 	try:
 	  gameDirector.parse(word[0], word[1])
 	  return hexchat.EAT_NONE
 	except:
 		hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
 
-hexchat.hook_print('Channel Message', check_line)
+def onPart(word, word_eol, userdata):
+	try:
+		context = hexchat.find_context()
+		activeUsers = context.get_list('users')
+		activeNicks = [user.nick for user in activeUsers]
+	  gameDirector.pruneGames(activeNicks)
+	  return hexchat.EAT_NONE
+	except:
+		hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
+
+hexchat.hook_print('Channel Message', onMessage)
+hexchat.hook_print('Part', onPart)
+
 hexchat.prnt(__module_name__ + ' version ' + __module_version__ + ' loaded.')
 hexchat.prnt(__module_description)
