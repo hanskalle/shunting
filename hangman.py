@@ -94,9 +94,10 @@ class HangmanGameDirector:
 		self.games.pop(nick)
 
 	def pruneGames(self, activeNicks):
-		for games in self.games:
-			if games.player not in activeNicks:
-				self.endGame(games.player)
+		players = self.games.keys()
+		for player in players:
+			if player not in activeNicks:
+				self.endGame(player)
 
 	def hasActiveGameFor(self, nick):
 		return nick in self.games
