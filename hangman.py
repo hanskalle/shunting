@@ -7,8 +7,6 @@ __author__ = "Hans Kalle"
 
 class Hangman:
 	def __init__(self, player):
-		import random
-		wordlist = ["stootjuk", "wissel", "spoortak", "isolatielas", "profielvrij", "aankondigingstijd", "sein", "prorail", "services", "raildocs", "fuzzy", "overweginstallatie"]
 		self.player = player
 		self.used_chars = set([])
 		self.guesses_left = 7
@@ -16,6 +14,8 @@ class Hangman:
 		self.won = False
 	
 	def startGame(self):
+		import random
+		wordlist = ["stootjuk", "wissel", "spoortak", "isolatielas", "profielvrij", "aankondigingstijd", "sein", "prorail", "services", "raildocs", "fuzzy", "overweginstallatie"]
 		self.word = wordlist[random.randint(0,len(wordlist)-1)]
 		return "Nou, " + self.player + ", ik heb een woord van " + str(len(self.word)) + " letters in gedachten. Roep maar een letter."
 
