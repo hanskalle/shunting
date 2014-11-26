@@ -126,8 +126,8 @@ def onPart(word, word_eol, userdata):
 		context = hexchat.find_context()
 		activeUsers = context.get_list('users')
 		activeNicks = [user.nick for user in activeUsers]
-	  gameDirector.pruneGames(activeNicks)
-	  return hexchat.EAT_NONE
+		gameDirector.pruneGames(activeNicks)
+		return hexchat.EAT_NONE
 	except:
 		hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
 
@@ -135,4 +135,4 @@ hexchat.hook_print('Channel Message', onMessage)
 hexchat.hook_print('Part', onPart)
 
 hexchat.prnt(__module_name__ + ' version ' + __module_version__ + ' loaded.')
-hexchat.prnt(__module_description)
+hexchat.prnt(__module_description__)
