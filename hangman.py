@@ -120,6 +120,7 @@ def onMessage(word, word_eol, userdata):
 	  return hexchat.EAT_NONE
 	except:
 		hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
+		return hexchat.EAT_NONE
 
 def onPart(word, word_eol, userdata):
 	try:
@@ -129,7 +130,8 @@ def onPart(word, word_eol, userdata):
 		gameDirector.pruneGames(activeNicks)
 		return hexchat.EAT_NONE
 	except:
-		hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
+		hexchat.prnt('Fout bij het verwerken van part-notificatie ' + word[0] + ': ' + word[1] + '.')
+		return hexchat.EAT_NONE
 
 hexchat.hook_print('Channel Message', onMessage)
 hexchat.hook_print('Part', onPart)
