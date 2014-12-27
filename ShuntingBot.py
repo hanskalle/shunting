@@ -31,7 +31,7 @@ def onPart(word, word_eol, userdata):
 		context = hexchat.find_context()
 		activeUsers = context.get_list('users')
 		activeNicks = [user.nick for user in activeUsers]
-		#gameDirector.pruneGames(activeNicks)
+		gameDirector.quit(activeNicks)
 		return hexchat.EAT_NONE
 	except:
 		hexchat.prnt('Fout bij het verwerken van part-notificatie ' + word[0] + ': ' + word[1] + '.')

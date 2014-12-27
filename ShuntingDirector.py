@@ -51,6 +51,11 @@ class ShuntingDirector():
                 command.function(game, nick, dict)
                 break
 
+    def quit(self, nick):
+        game = self._getGame(nick)
+        self._output(["Helaas, %s is er vandoor. Ik tel het maar als stopper. Bij terugkeer kan wel doorgespeeld worden." % nick])
+        self._stopGame(game, nick, {})
+
     def _getGame(self, nick):
         gameFound = None
         for game in self._games:
@@ -72,7 +77,7 @@ class ShuntingDirector():
             dict["stoppingPlayers"] = ", ".join(stoppingPlayers)
             dict["lastPlayers"] = ", ".join(lastPlayers)
             self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
-                        "Om het spel echt te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
+                        "Om het spel daadwerkelijk te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
                         "Dat zijn dus: %(lastPlayers)s."], dict)
 
     def _showStartingInstructions(self, game, nick, dict):
