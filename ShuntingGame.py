@@ -176,6 +176,9 @@ class ShuntingGame:
         else:
             return 4
 
+    def getState(self):
+        return self._state
+
     def isSettingUp(self):
         return self._state == ShuntingGame.SETUP
 

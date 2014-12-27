@@ -63,6 +63,9 @@ class GIVEN_a_just_started_shunting_game_with_two_players(unittest.TestCase):
     def test_THEN_the_deck_has_40_cards_left(self):
         self.assertEqual(self.game._getNumberOfCardsInDeck(), 40);
         
+    def test_THEN_the_game_state_is_ON(self):
+        self.assertEqual(self.game.getState(), self.game.ON)
+        
     def test_THEN_the_game_is_not_over(self):
         self.assertFalse(self.game.isOver())
         

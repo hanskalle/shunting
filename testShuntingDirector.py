@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import unittest
-import traceback
 from ShuntingDirector import ShuntingDirector
 
 class GIVEN_a_director_with_no_games_running(unittest.TestCase):
@@ -25,21 +24,21 @@ class GIVEN_a_director_with_no_games_running(unittest.TestCase):
 
     def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_the_director_creates_a_new_game_with_the_nick_as_first_player(self):
         self.director.parse(self.nick1, "Laten we shunting spelen.")
-        self.assertEqual(self.director.getGame(self.nick1).getPlayers()[0], self.nick1)
+        self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
 
     def test_WHEN_one_says_laten_WE_shunting_SPELEN_THEN_the_director_creates_a_new_game_with_the_nick_as_first_player(self):
         self.director.parse(self.nick1, "laten WE shunting SPELEN.")
-        self.assertEqual(self.director.getGame(self.nick1).getPlayers()[0], self.nick1)
+        self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
 
     def test_WHEN_another_says_Ik_doe_mee_met_somenone_THEN_another_is_added_to_the_game(self):
         self.director.parse(self.nick1, "Laten we shunting spelen.")
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
-        self.assertTrue(self.nick2 in self.director.getGame(self.nick1).getPlayers())
+        self.assertTrue(self.nick2 in self.director._getGame(self.nick1).getPlayers())
 
     def test_WHEN_the_same_player_says_Ik_doe_mee_met_somenone_THEN_then_he_is_not_added_again(self):
         self.director.parse(self.nick1, "Laten we shunting spelen.")
         self.director.parse(self.nick1, "Ik doe mee met %s!" % self.nick1)
-        self.assertEqual(len(self.director.getGame(self.nick1).getPlayers()), 1)
+        self.assertEqual(len(self.director._getGame(self.nick1).getPlayers()), 1)
 
 class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
     def setUp(self):
@@ -64,7 +63,7 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
 
     def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_he_is_reminded_of_the_current_game(self):
         self.director.parse(self.nick1, "Laten we shunting spelen.")
-        self.assertTrue(self.output.match(["Dan moet je eerst het huidige spel \(%s, %s\) afmaken." % (self.nick1, self.nick2)]))
+        self.assertTrue(self.output.match(["Sorry %s, je speelt al een spel met %s, %s!" % (self.nick1, self.nick1, self.nick2)]))
 
 class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
     def setUp(self):
@@ -152,6 +151,11 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
     def test_WHEN_a_player_ask_for_the_rules_THEN_they_are_told(self):
         self.director.parse(self.nick2, "Wat zijn de spelregels?")
         self.assertTrue(self.output.match(["De spelregels zijn"]))
+
+    def test_WHEN_a_player_asks_for_help_THEN_it_is_shown(self):
+        self.director.parse(self.nick2, "HELP!!!!!")
+        self.assertTrue(self.output.match(["De beurt is aan",
+                                        "In je beurt heb je drie mogelijkheden:"]))
 
     def test_WHEN_a_player_ask_for_the_number_of_hints_THEN_that_is_told(self):
         self.director.parse(self.nick2, "Hoeveel hints hebben we nog?")
