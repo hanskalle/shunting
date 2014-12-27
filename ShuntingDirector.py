@@ -163,7 +163,7 @@ class ShuntingDirector():
                     self._tellHints(game)
                     self._nextTurn(game)
                 else:
-                    self._output(["Sorry %(nick)s er is geen speler die %(player)s heet. Probeer opnieuw."], dict)
+                    self._output(["Sorry %(nick)s, er is geen speler die %(player)s heet. Probeer opnieuw."], dict)
             else:
                  self._output(["Jammer %(nick)s, maar jezelf hinten is niet toegestaan. Probeer opnieuw."], dict)
         else:
