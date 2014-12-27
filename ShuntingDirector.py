@@ -62,17 +62,15 @@ class ShuntingDirector():
 
     def _stopGame(self, game, nick, dict):
         self._stoppers.add(nick)
-        players = Set(game.getPlayers())
+        players = set(game.getPlayers())
         stoppingPlayers = players & self._stoppers
         lastPlayers = players - self._stoppers
         if len(lastPlayers) == 0:
             self._removeGame(game)
             self._output(["OK, iedereen wil het spelletje stoppen. Jammer, maar helaas: Game Over!"])
         else:
-            dict["total"] = len(players),
             dict["stoppingPlayers"] = ", ".join(stoppingPlayers)
             dict["lastPlayers"] = ", ".join(lastPlayers)
-            dict["stopping"] = len(players) - lastPlayers
             self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
                         "Om het spel echt te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
                         "Dat zijn dus: %(lastPlayers)s."], dict)

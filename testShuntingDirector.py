@@ -65,6 +65,15 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
         self.director.parse(self.nick1, "Laten we shunting spelen.")
         self.assertTrue(self.output.match(["Sorry %s, je speelt al een spel met %s, %s!" % (self.nick1, self.nick1, self.nick2)]))
 
+    def test_WHEN_one_says_Ik_ga_stoppen_THEN_the_game_keeps_running(self):
+        self.director.parse(self.nick1, "Ik stop er mee.")
+        self.assertTrue(self.output.match(["De spelers die het spel willen stoppen"]))
+
+    def test_WHEN_boith_say_Ik_stop_THEN_the_game_stops(self):
+        self.director.parse(self.nick1, "Ik stop")
+        self.director.parse(self.nick2, "Ik ga ook stoppen.")
+        self.assertTrue(self.output.match(["OK, iedereen wil het spelletje stoppen"]))
+
 class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
     def setUp(self):
         self.output = MemoryStreamer()
