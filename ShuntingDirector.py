@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: latin-1 -*-
 
 from ShuntingGame import ShuntingGame
 
@@ -7,10 +8,11 @@ class ShuntingDirector():
        self._streamer = streamer
        self._games = []
        self._initCommands()
+       self._stoppers = set([])
 
     def _initCommands(self):
         self._commands = [
-            _Command(None, False, "(.* )?shunting spelen.*[^?]$", self._createNewGame),
+            _Command(None, False, "(.* )?shunting (.* )?spelen(.*[^?])?$", self._createNewGame),
             _Command(None, False, ".*regels( .*)? shunting.*\?$", self._showRules),
             _Command(None, False, ".*shunting", self._showStartingInstructions),
             _Command(None, False, ".*ik doe mee met (?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
@@ -24,6 +26,7 @@ class ShuntingDirector():
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
             _Command(ShuntingGame.ON, [True, False], ".*orden (.* )?(?P<order>[1-5]{4,5})", self._reorder),
+            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*stop(.*[^?])?$", self._stopGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?shunting spelen.*[^?]$", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*hints.*\?$", self._showHints),
@@ -56,6 +59,23 @@ class ShuntingDirector():
                     gameFound = game
                     break
         return gameFound
+
+    def _stopGame(self, game, nick, dict):
+        self._stoppers.add(nick)
+        players = Set(game.getPlayers())
+        stoppingPlayers = players & self._stoppers
+        lastPlayers = players - self._stoppers
+        if len(lastPlayers) == 0:
+            self._removeGame(game)
+            self._output(["OK, iedereen wil het spelletje stoppen. Jammer, maar helaas: Game Over!"])
+        else:
+            dict["total"] = len(players),
+            dict["stoppingPlayers"] = ", ".join(stoppingPlayers)
+            dict["lastPlayers"] = ", ".join(lastPlayers)
+            dict["stopping"] = len(players) - lastPlayers
+            self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
+                        "Om het spel echt te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
+                        "Dat zijn dus: %(lastPlayers)s."], dict)
 
     def _showStartingInstructions(self, game, nick, dict):
         self._output([
@@ -228,11 +248,13 @@ class ShuntingDirector():
             self._tellTurn(game)
         else:
             self._tellGameOver(game)
+            self._removeGame(game)
 
     def _tellGameOver(self, game):
-        score = game.getScore();
-        self._output(["Het spel is afgelopen.",
-            "Jullie hebben in totaal %i wagons correct opgesteld." % score])
+        self._output(["Het spel is afgelopen."])
+        self._tellTrains(game)
+        score = game.getScore()
+        self._output(["Jullie hebben in totaal %i wagons correct opgesteld." % score])
         if score <= 5:
             self._output(["Dat is een vreselijk beroerd resultaat! Zoek maar een baan als manager."])
         elif score <= 10:
@@ -245,13 +267,11 @@ class ShuntingDirector():
             self._output(["Geweldig. Zou je met dit team ook de 25 kunnen halen?"])
         else:
             self._output(["Legendarisch!!!!!"])
-        self._removeGame(game.getOwner())
-        
-    def _removeGame(self, owner):
-        for i in range(len(self._games)):
-            if self._games[i].getOwner() == owner:
-                del(self._games[i])
-                break
+
+    def _removeGame(self, game):
+        for player in game.getPlayers():
+            self._stoppers.discard(player)
+        self._games.remove(game)
 
     def _tellHandToOthers(self, player, game):
         hand = ",".join(game.getHandCards(player))
