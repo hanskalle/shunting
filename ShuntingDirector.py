@@ -18,7 +18,7 @@ class ShuntingDirector():
             _Command(None, False, ".*regels( .*)? " + self.NAME.lower() + ".*\?$", self._showRules),
             _Command(None, False, ".*" + self.NAME.lower(), self._showStartingInstructions),
             _Command(None, False, ".*ik doe mee met (.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
-            _Command(ShuntingGame.SETUP, False, ".*we (.*)?beginnen[^?]$", self._startGame),
+            _Command(ShuntingGame.SETUP, False, ".*we (.*)?beginnen(.*[^?])?$", self._startGame),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (af|weg)", self._discard),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (neer|aan|bij)", self._play),
             _Command(ShuntingGame.ON, True, ".*speel( .*)? (?P<index>[1-5])", self._play),
@@ -132,17 +132,21 @@ class ShuntingDirector():
         self._output(["Sorry %(nick)s, je speelt al een spel met %(players)s!"], dict)
 
     def _startGame(self, game, nick, dict):
-        if nick == game.getOwner():
-            game.start()
-            self._output(["Ik vertel de handkaarten via prive-berichten, zodat je als rangeerder niet weet welke wagons er op jouw opstelterrein staan."], dict)
-            for player in game.getPlayers():
-                self._tellHandToOthers(player, game)
-            self._tellExtraLocomotives(game)
-            self._tellHints(game)
-            self._showHelp(game, nick, dict)
-            self._tellTurn(game)
+        owner = game.getOwner()
+        if nick == owner:
+            if len(game.getPlayers()) > 1:
+                game.start()
+                self._output(["Ik vertel de handkaarten via prive-berichten, zodat je als rangeerder niet weet welke wagons er op jouw opstelterrein staan."], dict)
+                for player in game.getPlayers():
+                    self._tellHandToOthers(player, game)
+                self._tellExtraLocomotives(game)
+                self._tellHints(game)
+                self._showHelp(game, nick, dict)
+                self._tellTurn(game)
+            else:
+                self._output(["Sorry, voor Kijfhoek zijn minstens 2 spelers nodig."])
         else:
-            dict["owner"] = game.getOwner()
+            dict["owner"] = owner
             self._output(["Sorry %(nick)s, alleen %(owner)s mag een spel laten beginnen."], dict)
 
     def _discard(self, game, nick, dict):

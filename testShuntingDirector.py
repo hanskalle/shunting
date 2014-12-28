@@ -26,9 +26,10 @@ class GIVEN_a_director_with_no_games_running(unittest.TestCase):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
 
-    def test_WHEN_one_says_laten_WE_shunting_SPELEN_THEN_the_director_creates_a_new_game_with_the_nick_as_first_player(self):
+    def test_WHEN_one_says_laten_WE_shunting_SPELEN_and_let_the_game_start_THEN_then_it_is_told_that_one_cannot_play_it_on_your_own(self):
         self.director.parse(self.nick1, "laten WE kijfhoek SPELEN.")
-        self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
+        self.director.parse(self.nick1, "We beginnen maar snel.")
+        self.assertTrue(self.output.match(["Sorry, voor Kijfhoek zijn minstens 2 spelers nodig."]))
 
     def test_WHEN_another_says_Ik_doe_mee_met_somenone_THEN_another_is_added_to_the_game(self):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
