@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
 
+__module_name__ = "ShuntingDirector"
+
 from ShuntingGame import ShuntingGame
 
 class ShuntingDirector():

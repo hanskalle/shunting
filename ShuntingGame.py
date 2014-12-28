@@ -1,3 +1,5 @@
+__module_name__ = "ShuntingGame"
+
 class ShuntingGame:
     SETUP = 1
     ON = 2
