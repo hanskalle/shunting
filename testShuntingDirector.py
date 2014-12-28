@@ -11,7 +11,7 @@ class GIVEN_a_director_with_no_games_running(unittest.TestCase):
         self.director = ShuntingDirector(self.output)
 
     def test_WHEN_a_player_ask_for_the_rules_including_the_name_of_the_game_THEN_they_are_told(self):
-        self.director.parse(self.nick2, "Wat zijn de spelregels van shunting?")
+        self.director.parse(self.nick2, "Wat zijn de spelregels van Kijfhoek?")
         self.assertTrue(self.output.match(["De spelregels zijn"]))
 
     def test_WHEN_a_player_ask_for_the_rules_without_the_name_of_the_game_THEN_they_are_not_told(self):
@@ -19,24 +19,24 @@ class GIVEN_a_director_with_no_games_running(unittest.TestCase):
         self.assertFalse(self.output.match(["De spelregels zijn"]))
 
     def test_WHEN_someone_mentions_the_name_of_the_game_THEN_the_director_yields_the_starting_instructions(self):
-        self.director.parse(self.nick1, "Een regel waarin shunting wordt gebruikt.")
-        self.assertTrue(self.output.match(["Op de volgende manieren kun je shunting bijvoorbeeld starten:"]))
+        self.director.parse(self.nick1, "Een regel waarin Kijfhoek wordt gebruikt.")
+        self.assertTrue(self.output.match(["Op de volgende manieren kun je Kijfhoek bijvoorbeeld starten:"]))
 
     def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_the_director_creates_a_new_game_with_the_nick_as_first_player(self):
-        self.director.parse(self.nick1, "Laten we shunting spelen.")
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
 
     def test_WHEN_one_says_laten_WE_shunting_SPELEN_THEN_the_director_creates_a_new_game_with_the_nick_as_first_player(self):
-        self.director.parse(self.nick1, "laten WE shunting SPELEN.")
+        self.director.parse(self.nick1, "laten WE kijfhoek SPELEN.")
         self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
 
     def test_WHEN_another_says_Ik_doe_mee_met_somenone_THEN_another_is_added_to_the_game(self):
-        self.director.parse(self.nick1, "Laten we shunting spelen.")
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
         self.assertTrue(self.nick2 in self.director._getGame(self.nick1).getPlayers())
 
     def test_WHEN_the_same_player_says_Ik_doe_mee_met_somenone_THEN_then_he_is_not_added_again(self):
-        self.director.parse(self.nick1, "Laten we shunting spelen.")
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.director.parse(self.nick1, "Ik doe mee met %s!" % self.nick1)
         self.assertEqual(len(self.director._getGame(self.nick1).getPlayers()), 1)
 
@@ -45,7 +45,7 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
         self.output = MemoryStreamer()
         self.director = ShuntingDirector(self.output)
         self.nick1 = "someone"
-        self.director.parse(self.nick1, "Laten we shunting spelen.")
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.nick2 = "another"
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
 
@@ -62,7 +62,7 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
         self.assertTrue(self.output.match(["De spelregels zijn"]))
 
     def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_he_is_reminded_of_the_current_game(self):
-        self.director.parse(self.nick1, "Laten we shunting spelen.")
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.assertTrue(self.output.match(["Sorry %s, je speelt al een spel met %s, %s!" % (self.nick1, self.nick1, self.nick2)]))
 
     def test_WHEN_one_says_Ik_ga_stoppen_THEN_the_game_keeps_running(self):
@@ -79,7 +79,7 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
         self.output = MemoryStreamer()
         self.director = ShuntingDirector(self.output)
         self.nick1 = "hans"
-        self.director.parse(self.nick1, "Laten we shunting spelen.")
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.nick2 = "david"
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
         self.director.parse(self.nick1, "We beginnen.")

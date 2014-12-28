@@ -4,6 +4,8 @@
 from ShuntingGame import ShuntingGame
 
 class ShuntingDirector():
+    NAME = "Kijfhoek"
+
     def __init__(self, streamer):
        self._streamer = streamer
        self._games = []
@@ -12,10 +14,10 @@ class ShuntingDirector():
 
     def _initCommands(self):
         self._commands = [
-            _Command(None, False, "(.* )?shunting (.* )?spelen(.*[^?])?$", self._createNewGame),
-            _Command(None, False, ".*regels( .*)? shunting.*\?$", self._showRules),
-            _Command(None, False, ".*shunting", self._showStartingInstructions),
-            _Command(None, False, ".*ik doe mee met (?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
+            _Command(None, False, "(.* )?" + self.NAME.lower() + " (.* )?spelen(.*[^?])?$", self._createNewGame),
+            _Command(None, False, ".*regels( .*)? " + self.NAME.lower() + ".*\?$", self._showRules),
+            _Command(None, False, ".*" + self.NAME.lower(), self._showStartingInstructions),
+            _Command(None, False, ".*ik doe mee met (.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
             _Command(ShuntingGame.SETUP, False, ".*we (.*)?beginnen[^?]$", self._startGame),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (af|weg)", self._discard),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (neer|aan|bij)", self._play),
@@ -27,7 +29,7 @@ class ShuntingDirector():
             _Command(ShuntingGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
             _Command(ShuntingGame.ON, [True, False], ".*orden (.* )?(?P<order>[1-5]{4,5})", self._reorder),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*stop(.*[^?])?$", self._stopGame),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?shunting spelen.*[^?]$", self._stillPlayingAnotherGame),
+            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?" + self.NAME.lower() + " spelen.*[^?]$", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*hints.*\?$", self._showHints),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*noodloc.*\?$", self._showExtraLocomotives),
@@ -65,6 +67,50 @@ class ShuntingDirector():
                     break
         return gameFound
 
+    def _showStartingInstructions(self, game, nick, dict):
+        self._output([
+            "Ik ben een bot die het spelletje " + self.NAME + " kan faciliteren!",
+            "Op de volgende manieren kun je " + self.NAME + " bijvoorbeeld starten:",
+            "  Laten we %%b" + self.NAME + " spelen%%o.",
+            "  Ik wil graag " + self.NAME + " spelen.",
+            "Maar je kunt ook eerst vragen om de spelregels van " + self.NAME + "."])
+
+    def _showHelp(self, game, nick, dict):
+        self._output([
+            "In je beurt heb je drie mogelijkheden:",
+            "1) %%bSpeel%%o kaart %%b<index>%%o. Bijvoorbeeld: Speel kaart 2. Of: Ik speel 2.",
+            "2) %%bLeg%%o kaart %%b<index> af%%o. Bijvoorbeeld: Leg kaart 2 af. Of: Ik leg 4 weg.",
+            "3) %%bHint <kleur/cijfer> aan <nick>%%o. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
+            "In en buiten je beurt kun je de volgende dingen doen.",
+            "- %%bOrden%%o hand %%b35124%%o. Hiermee verwissel je de volgorde van je handkaarten. Dat kan helpen bij het onthouden van de hints.",
+            "- Welke %%btreinen%%o hebben we nu%%b?%%o",
+            "- Hoeveel %%bhints%%o zijn er nog beschikbaar%%b?%%o",
+            "- Wat is het aantal %%bnoodloc%%oomotieven dat we nog mogen inzetten%%b?%%o",
+            "- Kun je de spel%%bregels%%o nog een keer precies vertellen%%b?%%o",
+            "- Sorry hoor, maar ik %%bstop%%o met dit spel!",
+            "Ook deze vragen mag je %%bkorter%%o formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
+
+    def _createNewGame(self, game, nick, dict):
+        self._games.append(ShuntingGame(nick))
+        self._output([
+            "Nou, %(nick)s, leuk dat je " + self.NAME + " wil spelen. Wie doet er mee? Er is minimaal nog 1 speler nodig.",
+            "Zeg 'Ik doe mee met %(nick)s.'."], dict)
+
+    def _joinGame(self, game, nick, dict):
+        game = self._getGame(dict["owner"])
+        if game:
+            if not nick in game.getPlayers():
+                game.addPlayer(nick)
+                dict["number_of_players"] = str(game.getNumberOfPlayers())
+                self._output([
+                    "Hoi %(nick)s, leuk dat je meedoet met het " + self.NAME + "-spel van %(owner)s.",
+                    "We hebben nu %(number_of_players)s spelers.",
+                    "%(owner)s, zeg jij wanneer we beginnen?"], dict)
+            else:
+                self._output(["Maar %(nick)s, je doet al mee met het " + self.NAME + "-spel van %(owner)s!"], dict)
+        else:
+            self._output(["Sorry %(nick)s, maar er is geen spel dat gestart is door %(owner)s."], dict)
+
     def _stopGame(self, game, nick, dict):
         self._stoppers.add(nick)
         players = set(game.getPlayers())
@@ -79,50 +125,6 @@ class ShuntingDirector():
             self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
                         "Om het spel daadwerkelijk te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
                         "Dat zijn dus: %(lastPlayers)s."], dict)
-
-    def _showStartingInstructions(self, game, nick, dict):
-        self._output([
-            "Ik ben een bot die het spelletje shunting kan faciliteren!",
-            "Op de volgende manieren kun je shunting bijvoorbeeld starten:",
-            "  Laten we shunting spelen.",
-            "  Ik wil graag shunting spelen.",
-            "Maar je kunt ook eerst vragen om de spelregels van shunting"])
-
-    def _showHelp(self, game, nick, dict):
-        self._output([
-            "In je beurt heb je drie mogelijkheden:",
-            "1) Speel kaart <index>. Bijvoorbeeld: Speel kaart 2. Of: Ik speel 2.",
-            "2) Leg kaart <index> af. Bijvoorbeeld: Leg kaart 2 af. Of: Ik leg 4 weg.",
-            "3) Hint <kleur/cijfer> aan <nick>. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
-            "In en buiten je beurt kun je de volgende dingen doen.",
-            "- Orden hand 35124. Hiermee verwissel je de volgorde van je handkaarten. Dat kan helpen bij het onthouden van de hints.",
-            "- Welke treinen hebben we nu?",
-            "- Hoeveel hints zijn er nog beschikbaar?",
-            "- Wat is het aantal noodlocomotieven dat we nog mogen inzetten?",
-            "- Kun je de spelregels nog een keer precies vertellen?",
-            "Ook deze vragen mag je korter formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
-
-    def _createNewGame(self, game, nick, dict):
-        self._games.append(ShuntingGame(nick))
-        self._output([
-            "Nou, %(nick)s, leuk dat je shunting wil spelen. Wie doet er mee? Er is minimaal nog 1 speler nodig.",
-            "Zeg 'Ik doe mee met %(nick)s.'."], dict)
-
-    def _joinGame(self, game, nick, dict):
-        game = self._getGame(dict["owner"])
-        if game:
-            if not nick in game.getPlayers():
-                game.addPlayer(nick)
-                dict["number_of_players"] = str(game.getNumberOfPlayers())
-                self._output([
-                    "Hoi %(nick)s, leuk dat je meedoet met het shunting spel van %(owner)s.",
-                    "We hebben nu %(number_of_players)s spelers.",
-                    "%(owner)s, zeg jij wanneer we beginnen?"], dict)
-            else:
-                self._output(["Maar %(nick)s, je doet al mee met het shunting spel van %(owner)s!"], dict)
-        else:
-            self._output([
-                "Sorry %(nick)s, maar er is geen spel dat gestart is door %(owner)s."], dict)
 
     def _stillPlayingAnotherGame(self, game, nick, dict):
         players = ", ".join(game.getPlayers())
@@ -160,7 +162,7 @@ class ShuntingDirector():
             color = game.getCardColor(card)
             self._tellTrains(game, color)
         else:
-            self._output(["Die kan niet worden aangelegd en beland op de aflegstapel."], dict)
+            self._output(["Die kan niet worden gekoppeld aan een trein en belandt op de aflegstapel."], dict)
             self._tellExtraLocomotives(game)
         if game.isOn():
             self._tellHandToOthers(nick, game)
