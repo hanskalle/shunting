@@ -41,6 +41,8 @@ class ShuntingGame:
         return len(self._deck)
 
     def _getCardFromDeck(self):
+        if len(self._deck) == 0:
+            Exception("Cannot draw from empty deck.")
         return self._deck.pop()
         
     def _removeCardFromDeck(self, card):
@@ -54,14 +56,11 @@ class ShuntingGame:
         while len(cards) > 0:
             self._deck.append(cards.pop())
 
-    def _dealNewCardTo(self, player):
-        card = self._getCardFromDeck()
-        self._hands[player].append(card)
-
     def _dealCards(self):
         for player in self._players:
             while len(self._hands[player]) < self._getMaxHandCards():
-                self._dealNewCardTo(player)
+                newCard = self._getCardFromDeck()
+                self._hands[player].append(newCard)
 
     def _initDiscardPile(self):
         self._discardPile = []
@@ -223,10 +222,6 @@ class ShuntingGame:
     def _nextTurn(self):
         if not self.isOn():
             raise Exception("Game is not on.")
-        if self._isLastRound():
-            self._discardHand()
-        else:
-            self._repleteHand()
         self._activateNextPlayer()
 
     def _setGameOver(self):
@@ -237,7 +232,7 @@ class ShuntingGame:
             raise Exception("You cannot discard a card when the game is not running.")
         if index > len(self._hands[self._activePlayer]):
             raise Exception("You cannot discard a card you do not have.")
-        card = self._getAndRemoveCardFromHand(index)
+        card = self._getAndRemoveCardFromHandRepleting(index)
         self._discardPile.append(card)
         self._increaseHints()
         self._nextTurn()
@@ -248,9 +243,13 @@ class ShuntingGame:
     def _getCardNumber(self, card):
         return int(card[1])
 
-    def _getAndRemoveCardFromHand(self, index):
+    def _getAndRemoveCardFromHandRepleting(self, index):
         card = self._hands[self._activePlayer][index-1]
-        del self._hands[self._activePlayer][index-1]
+        if not self._isLastRound():
+            newCard = self._getCardFromDeck()
+            self._hands[self._activePlayer][index-1] = newCard
+        else:
+            self._discardHand()
         return card
 
     def play(self, index):
@@ -258,7 +257,7 @@ class ShuntingGame:
             raise Exception("You cannot play a card when the game is not running.")
         if index > len(self._hands[self._activePlayer]):
             raise Exception("You cannot play a card you do not have.")
-        card = self._getAndRemoveCardFromHand(index)
+        card = self._getAndRemoveCardFromHandRepleting(index)
         if self._canBeAddedToTrain(card):
             self._addToTrain(card)
             if self.isComplete():
@@ -290,12 +289,8 @@ class ShuntingGame:
 
     def _discardHand(self):
         while self.getNumberOfHandCards() > 0:
-            card = self._getAndRemoveCardFromHand(1)
+            card = self._hands[self._activePlayer].pop()
             self._discardPile.append(card)
-
-    def _repleteHand(self):
-        while self.getNumberOfHandCards() < self._getMaxHandCards() and self._getNumberOfCardsInDeck() > 0:
-            self._dealNewCardTo(self._activePlayer)
 
     def _activateNextPlayer(self):
         index = self._players.index(self._activePlayer) + 1

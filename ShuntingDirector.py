@@ -23,12 +23,12 @@ class ShuntingDirector():
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (af|weg)", self._discard),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (neer|aan|bij)", self._play),
             _Command(ShuntingGame.ON, True, ".*speel( .*)? (?P<index>[1-5])", self._play),
-            _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
-            _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])", self._hint),
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5]) (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
+            _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
+            _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])", self._hint),
             _Command(ShuntingGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
-            _Command(ShuntingGame.ON, [True, False], ".*orden (.* )?(?P<order>[1-5]{4,5})", self._reorder),
+            _Command(ShuntingGame.ON, [True, False], ".*orden (.* )?(?P<order>[1-5]{1,5}\.{0,4})( .*)?", self._reorder),
             _Command(ShuntingGame.ON, [True, False], ".*stop(.*[^?])?$", self._stopGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?" + self.NAME.lower() + " spelen.*[^?]$", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
@@ -79,15 +79,21 @@ class ShuntingDirector():
             namestring += " en " + players[-1]
         return namestring
 
-    def _getIndicesList(self, indicesString, maxIndex):
+    def _getIndicesList(self, indicesString):
+        maxIndex = len(indicesString)
+        restIndices = range(1, maxIndex+1)
         indicesList = []
+        indicesString = indicesString.replace(".","")
         for index in indicesString:
+            index = int(index)
             if not index in indicesList:
-                index = int(index)
                 if index <= maxIndex:
                     indicesList.append(index)
+                    restIndices[index-1] = None
+        for index in restIndices:
+            if not index is None:
+                indicesList.append(index)
         return indicesList
-
 
     def _getProperPlayerName(self, game, nick):
         for player in game.getPlayers():
@@ -121,9 +127,10 @@ class ShuntingDirector():
             self._removeGame(game)
 
     def _createNewGame(self, game, nick, dict):
-        self._games.append(ShuntingGame(nick))
-        self._output([
-            "Nou, %(nick)s, leuk dat je " + self.NAME + " wil spelen."], dict)
+        game = ShuntingGame(nick)
+        self._games.append(game)
+        self._output(["Nou, %(nick)s, leuk dat je " + self.NAME + " wil spelen."], dict)
+        self._tellJoinOrStart(game, dict)
 
     def _joinGame(self, game, nick, dict):
         game = self._getGame(dict["owner"])
@@ -228,7 +235,9 @@ class ShuntingDirector():
     def _reorder(self, game, nick, dict):
         self._stoppers.discard(nick)
         numberOfHandCards = len(game.getHandCards(nick))
-        order = self._getIndicesList(dict["order"], numberOfHandCards)
+        order = dict["order"]
+        if len(order) == numberOfHandCards:
+            order = self._getIndicesList(order)
         if len(order) == numberOfHandCards:
             game.reorderHandCards(nick, order)
             self._output(["De handkaarten van %(nick)s zijn opnieuw gerangschikt."], dict)
@@ -336,7 +345,7 @@ class ShuntingDirector():
         dict["owner"] = game.getOwner()
         dict["number_of_players"] = game.getNumberOfPlayers()
         dict["players"] = self._getNamelist(game.getPlayers())
-        self._output("We hebben nu %(number_of_players)i spelers: %(players)s." % dict)
+        self._output(["We hebben nu %(number_of_players)i spelers: %(players)s."], dict)
         if game.getNumberOfPlayers() == 1:
             self._output(["Wie doet er mee? Er is minimaal nog een tweede speler nodig.",
                     "Zeg 'Ik %%bspeel mee%%o met %%b%(owner)s%%o.'."], dict)

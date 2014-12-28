@@ -238,7 +238,7 @@ class GIVEN_a_shunting_game_with_all_wrong_cards_on_top_of_the_deck(unittest.Tes
     def test_WHEN_there_were_3_cards_played_THEN_then_game_is_over(self):
         self.game.play(1)
         self.game.play(1)
-        self.game.play(1)
+        self.game.play(2)
         self.assertTrue(self.game.isOver())
 
 class GIVEN_a_shunting_game_with_a_perfect_setup_on_table_hand_and_deck(unittest.TestCase):
@@ -283,14 +283,14 @@ class GIVEN_a_shunting_game_with_a_perfect_setup_on_table_hand_and_deck(unittest
 
     def test_WHEN_player1_plays_his_first_card_five_times_AND_player2_just_discards_THEN_the_score_should_be_11(self):
         for i in range(5):
-            self.game.play(1)
+            self.game.play(i+1)
             self.game.discard(1)
         self.assertEqual(self.game.getScore(), 11)
 
     # completing a train gets an extra hint
     def test_WHEN_player1_plays_his_fourth_card_two_times_AND_player2_hints_two_times_THEN_there_should_be_7_hints_left(self):
         for i in range(2):
-            self.game.play(4)
+            self.game.play(4+i)
             self.game.hint(self.player1,  "B")
         self.assertEqual(self.game.getHintsLeft(), 7)
         
@@ -318,22 +318,23 @@ class GIVEN_a_shunting_game_with_a_perfect_setup_on_table_hand_and_deck(unittest
         self.assertEqual(self.game.getHintsLeft(), 8)
         
     def test_WHEN_the_players_play_their_first_card_20_times_THEN_the_game_is_over_and_the_score_is_perfect(self):
-        for i in range(20):
-            self.game.play(1)
+        for i in range(10):
+            self.game.play((i % 5) + 1)
+            self.game.play((i % 5) + 1)
         self.assertEqual(self.game.getScore(), 25)
         self.assertTrue(self.game.isOver())
         
     def test_THEN_the_first_cards_drawn_should_be_R5_O4_O5_G4_G5(self):
         self.game.discard(1)
-        self.assertEqual(self.game._peekHandCard(5, self.player1), "R5")
+        self.assertEqual(self.game._peekHandCard(1, self.player1), "R5")
         self.game.discard(1)
-        self.assertEqual(self.game._peekHandCard(5, self.player2), "O4")
+        self.assertEqual(self.game._peekHandCard(1, self.player2), "O4")
         self.game.discard(1)
-        self.assertEqual(self.game._peekHandCard(5, self.player1), "O5")
+        self.assertEqual(self.game._peekHandCard(1, self.player1), "O5")
         self.game.discard(1)
-        self.assertEqual(self.game._peekHandCard(5, self.player2), "G4")
+        self.assertEqual(self.game._peekHandCard(1, self.player2), "G4")
         self.game.discard(1)
-        self.assertEqual(self.game._peekHandCard(5, self.player1), "G5")
+        self.assertEqual(self.game._peekHandCard(1, self.player1), "G5")
         
 if __name__ == '__main__':
     unittest.main()       

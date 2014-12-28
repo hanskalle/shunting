@@ -4,6 +4,17 @@
 import unittest
 from ShuntingDirector import ShuntingDirector
 
+class GIVEN_a_director(unittest.TestCase):
+    def setUp(self):
+        self.output = MemoryStreamer()
+        self.director = ShuntingDirector(self.output)
+
+    def test_WHEN_you_reorder_35____THEN_the_result_is_3_5_1_2_4(self):
+        self.assertEqual(self.director._getIndicesList("35..."), [3,5,1,2,4])
+
+    def test_WHEN_you_reorder_123___THEN_the_result_is_1_2_3_4_5(self):
+        self.assertEqual(self.director._getIndicesList("123.."), [1,2,3,4,5])
+
 class GIVEN_a_director_with_no_games_running(unittest.TestCase):
     def setUp(self):
         self.nick1 = "someone"
@@ -26,6 +37,10 @@ class GIVEN_a_director_with_no_games_running(unittest.TestCase):
     def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_the_director_creates_a_new_game_with_the_nick_as_first_player(self):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.assertEqual(self.director._getGame(self.nick1).getPlayers()[0], self.nick1)
+
+    def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_the_director_tells_people_how_to_join(self):
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
+        self.assertTrue(self.output.match([".*speel mee"]))
 
     def test_WHEN_one_says_laten_WE_shunting_SPELEN_and_let_the_game_start_THEN_then_it_is_told_that_one_cannot_play_it_on_your_own(self):
         self.director.parse(self.nick1, "laten WE kijfhoek SPELEN.")
@@ -109,6 +124,24 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
         self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick1]))
 
+    def test_WHEN_player1_says_Orden_kaarten_54____THEN_his_cards_are_reordered_and_the_cards_are_secretly_told_to_player2_and_its_still_player1s_turn(self):
+        originalOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
+        self.director.parse(self.nick1, "Orden kaarten 54321")
+        newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
+        self.assertNotEqual(originalOrder, newOrder)
+        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.director.parse(self.nick1, "Orden kaarten 54321")
+        newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
+        self.assertEqual(originalOrder, newOrder)
+        self.director.parse(self.nick1, "Orden kaarten 45...")
+        newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
+        self.assertNotEqual(originalOrder, newOrder)
+        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.director.parse(self.nick1, "Orden kaarten 345..")
+        newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
+        self.assertEqual(originalOrder, newOrder)
+        self.assertFalse(self.output.match(["De beurt is aan %s." % self.nick2]))
+
     def test_WHEN_player1_says_Speel_kaart_5_THEN_the_train_or_the_extraLocomotives_are_updated_and_his_new_hand_is_shown_to_others_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Speel kaart 5")
         trainUpdate = self.output.match(["Trein [ROGBP] heeft "])
@@ -129,6 +162,10 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
         self.assertEqual(hintCount, 1)
         self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
+
+    def test_WHEN_player1_says_Hint_Oranje_aan_David_THEN_hints_left_become_7(self):
+        self.director.parse(self.nick1, "Hint Oranje aan David")
+        self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
 
     def test_WHEN_player1_says_Hint_unknown_3_THEN_that_is_not_counted_as_move(self):
         self.director.parse(self.nick1, "Hint Blauw aan unknown")
