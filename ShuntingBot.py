@@ -22,8 +22,13 @@ def onMessage(word, word_eol, userdata):
     try:
       gameDirector.parse(word[0], word[1])
       return hexchat.EAT_NONE
-    except:
-        hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
+    except Exception as e:
+        dict = {
+            'nick': word[0],
+            'line': word[1],
+            'exception': str(e)
+        }
+        hexchat.prnt('Fout bij het parsen van %(nick)s: %(line)s on %(exception)s.' % dict )
         return hexchat.EAT_NONE
 
 def onPart(word, word_eol, userdata):
