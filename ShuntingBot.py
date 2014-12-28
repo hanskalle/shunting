@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 __module_name__ = "Shunting"
-__module_version__ = "0.1"
+__module_version__ = "0.9"
 __module_description__ = "Bot waarmee Kijfhoek gespeeld kan worden. Reageert op het woord Kijfhoek."
 __author__ = "Hans Kalle"
 
@@ -28,7 +28,7 @@ def onMessage(word, word_eol, userdata):
             'line': word[1],
             'exception': str(e)
         }
-        hexchat.prnt('Fout bij het parsen van %(nick)s: %(line)s on %(exception)s.' % dict )
+        hexchat.prnt('Fout bij het parsen van %(nick)s: %(line)s op %(exception)s.' % dict )
         return hexchat.EAT_NONE
 
 def onPart(word, word_eol, userdata):
@@ -44,7 +44,7 @@ def onPart(word, word_eol, userdata):
             'line': word[1],
             'exception': str(e)
         }
-        hexchat.prnt('Fout bij het verwerken van part-notificatie van %(nick)s: %(line)s on %(exception)s.' % dict )
+        hexchat.prnt('Fout bij het verwerken van part-notificatie van %(nick)s: %(line)s op %(exception)s.' % dict )
         return hexchat.EAT_NONE
 
 hexchat.hook_print('Channel Message', onMessage)
