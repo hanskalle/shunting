@@ -11,31 +11,36 @@ from ShuntingDirector import ShuntingDirector
 
 class HexchatStreamer():
     def output(self, line):
-		hexchat.command("say " + line)
+        hexchat.command("say " + line)
 
     def privateOutput(self, nick, line):
-		hexchat.command("msg %s %s" % (nick, line))
+        hexchat.command("msg %s %s" % (nick, line))
 
 gameDirector = ShuntingDirector(HexchatStreamer())
 
 def onMessage(word, word_eol, userdata):
-	try:
-	  gameDirector.parse(word[0], word[1])
-	  return hexchat.EAT_NONE
-	except:
-		hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
-		return hexchat.EAT_NONE
+    try:
+      gameDirector.parse(word[0], word[1])
+      return hexchat.EAT_NONE
+    except:
+        hexchat.prnt('Fout bij het parsen van ' + word[0] + ': ' + word[1] + '.')
+        return hexchat.EAT_NONE
 
 def onPart(word, word_eol, userdata):
-	try:
-		context = hexchat.find_context()
-		activeUsers = context.get_list('users')
-		activeNicks = [user.nick for user in activeUsers]
-		gameDirector.quit(word[0])
-		return hexchat.EAT_NONE
-	except:
-		hexchat.prnt('Fout bij het verwerken van part-notificatie ' + word[0] + ': ' + word[1] + '.')
-		return hexchat.EAT_NONE
+    try:
+        context = hexchat.find_context()
+        activeUsers = context.get_list('users')
+        activeNicks = [user.nick for user in activeUsers]
+        gameDirector.quit(word[0])
+        return hexchat.EAT_NONE
+    except Exception as e:
+        dict = {
+            'nick': word[0],
+            'line': word[1],
+            'exception': str(e)
+        }
+        hexchat.prnt('Fout bij het verwerken van part-notificatie van %(nick)s: %(line)s on %(exception)s.' % dict )
+        return hexchat.EAT_NONE
 
 hexchat.hook_print('Channel Message', onMessage)
 hexchat.hook_print('Part', onPart)
