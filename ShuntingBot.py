@@ -2,7 +2,7 @@
 
 __module_name__ = "Shunting"
 __module_version__ = "0.1"
-__module_description__ = "Bot waarmee shunting gespeeld kan worden. Reageert op het woord shunting."
+__module_description__ = "Bot waarmee Kijfhoek gespeeld kan worden. Reageert op het woord Kijfhoek."
 __author__ = "Hans Kalle"
 
 import hexchat
