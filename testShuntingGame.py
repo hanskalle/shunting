@@ -27,6 +27,43 @@ class GIVEN_a_new_shunting_game(unittest.TestCase):
         self.game.addPlayer("David")
         self.assertRaises(Exception, self.game.addPlayer, "David")
 
+class GIVEN_shunting_game_in_setup_with_five_players(unittest.TestCase):
+    def setUp(self):
+        self.player1 = "Hans"
+        self.player2 = "David"
+        self.player3 = "Mattanja"
+        self.player4 = "Arjan"
+        self.player5 = "Joshua"
+        self.game = ShuntingGame(self.player1)
+        self.game.addPlayer(self.player2)
+        self.game.addPlayer(self.player3)
+        self.game.addPlayer(self.player4)
+        self.game.addPlayer(self.player5)
+
+    def test_WHEN_you_try_to_add_a_player_THEN_that_is_not_allowed(self):
+        self.assertRaises(Exception, self.game.addPlayer, "Joop")
+
+    def test_WHEN_you_try_to_add_a_player_that_is_allready_added_THEN_that_is_not_allowed(self):
+        self.assertRaises(Exception, self.game.addPlayer, self.player3)
+
+    def test_WHEN_you_remove_one_of_the_players_THEN_than_there_are_4_players_left(self):
+        self.game.removePlayer(self.player3)
+        self.assertEquals(self.game.getNumberOfPlayers(), 4)
+
+    def test_WHEN_you_remove_one_of_the_players_THEN_than_you_can_add_it_again(self):
+        self.game.removePlayer(self.player3)
+        self.game.addPlayer(self.player3)
+
+    def test_WHEN_you_start_the_game_AND_remove_one_of_the_players_THEN_than_is_not_allowed(self):
+        self.game.start()
+        self.assertRaises(Exception, self.game.removePlayer, self.player3)
+
+    def test_WHEN_remove_an_unknown_player_THEN_than_is_not_allowed(self):
+        self.assertRaises(Exception, self.game.removePlayer, "unknown-player")
+
+    def test_WHEN_remove_you_remove_the_owner_of_the_game_THEN_than_is_not_allowed(self):
+        self.assertRaises(Exception, self.game.removePlayer, self.player1)
+
 class GIVEN_a_just_started_shunting_game_with_two_players(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"

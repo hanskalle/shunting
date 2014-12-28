@@ -17,8 +17,9 @@ class ShuntingDirector():
             _Command(None, False, "(.* )?" + self.NAME.lower() + " (.* )?spelen(.*[^?])?$", self._createNewGame),
             _Command(None, False, ".*regels( .*)? " + self.NAME.lower() + ".*\?$", self._showRules),
             _Command(None, False, ".*" + self.NAME.lower(), self._showStartingInstructions),
-            _Command(None, False, ".*ik doe mee met (.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
+            _Command(None, False, ".*(doe|speel) (.* )?mee[, ](.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
             _Command(ShuntingGame.SETUP, False, ".*we (.*)?beginnen(.*[^?])?$", self._startGame),
+            _Command(ShuntingGame.SETUP, False, ".*stop(.*[^?])?$", self._leaveGame),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (af|weg)", self._discard),
             _Command(ShuntingGame.ON, True, ".*leg( .*)? (?P<index>[1-5])( .*)? (neer|aan|bij)", self._play),
             _Command(ShuntingGame.ON, True, ".*speel( .*)? (?P<index>[1-5])", self._play),
@@ -28,7 +29,7 @@ class ShuntingDirector():
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
             _Command(ShuntingGame.ON, [True, False], ".*orden (.* )?(?P<order>[1-5]{4,5})", self._reorder),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*stop(.*[^?])?$", self._stopGame),
+            _Command(ShuntingGame.ON, [True, False], ".*stop(.*[^?])?$", self._stopGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?" + self.NAME.lower() + " spelen.*[^?]$", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*hints.*\?$", self._showHints),
@@ -67,6 +68,190 @@ class ShuntingDirector():
                     break
         return gameFound
 
+    def _getNamelist(self, players):
+        players = list(players)
+        namestring = ""
+        if len(players) > 0:
+            namestring += players[0]
+        for player in players[1:-1]:
+            namestring += ", " + player
+        if len(players) > 1:
+            namestring += " en " + players[-1]
+        return namestring
+
+    def _getIndicesList(self, indicesString, maxIndex):
+        indicesList = []
+        for index in indicesString:
+            if not index in indicesList:
+                index = int(index)
+                if index <= maxIndex:
+                    indicesList.append(index)
+        return indicesList
+
+
+    def _getProperPlayerName(self, game, nick):
+        for player in game.getPlayers():
+            if nick == player.lower():
+                return player
+        return nick
+
+    def _getMatchIndices(self, matches):
+        indices = ""
+        for i in range(len(matches)):
+            if matches[i]:
+                if indices == "":
+                    indices = str(i+1)
+                else:
+                    indices = indices.replace(" en", ",")
+                    indices = indices + " en " + str(i+1)
+        return indices
+
+    def _output(self, lines, dict={}):
+        for line in lines:
+            self._streamer.output(line % dict)
+
+    def _privateOutput(self, nick, line, dict={}):
+        self._streamer.privateOutput(nick, line % dict)
+
+    def _nextTurn(self, game):
+        if game.isOn():
+            self._tellTurn(game)
+        else:
+            self._tellGameOver(game)
+            self._removeGame(game)
+
+    def _createNewGame(self, game, nick, dict):
+        self._games.append(ShuntingGame(nick))
+        self._output([
+            "Nou, %(nick)s, leuk dat je " + self.NAME + " wil spelen."], dict)
+
+    def _joinGame(self, game, nick, dict):
+        game = self._getGame(dict["owner"])
+        if game:
+            if not nick in game.getPlayers():
+                game.addPlayer(nick)
+                self._output(["Hoi %(nick)s, leuk dat je meedoet met het " + self.NAME + "-spel van %(owner)s."], dict)
+                self._tellJoinOrStart(game, dict)
+            else:
+                self._output(["Maar %(nick)s, je doet al mee met het " + self.NAME + "-spel van %(owner)s!"], dict)
+        else:
+            self._output(["Sorry %(nick)s, maar er is geen spel dat gestart is door %(owner)s."], dict)
+
+    def _leaveGame(self, game, nick, dict):
+        if nick == game.getOwner():
+            if game.getNumberOfPlayers() == 1:
+                self._output(["OK, dan beëindigen we het spel. En het was nog niet eens begonnen!"])
+                self._removeGame(game)
+            else:                
+                self._output(["Degene die het spel gestart heeft, mag pas stoppen als de rest dat eerst gedaan heeft."])
+        else:
+            game.removePlayer(nick)
+            self._output(["Jammer dat je niet meespeelt %(nick)s. Aan de andere kant speelt het wel beter met alleen maar intelligente teamleden."], dict)
+            self._tellJoinOrStart(game, dict)
+
+    def _stillPlayingAnotherGame(self, game, nick, dict):
+        players = self._getNamelist(game.getPlayers())
+        dict["players"] = players
+        self._output(["Sorry %(nick)s, je speelt al een spel met %(players)s!"], dict)
+
+    def _startGame(self, game, nick, dict):
+        owner = game.getOwner()
+        if nick == owner:
+            if len(game.getPlayers()) > 1:
+                game.start()
+                self._output(["Ik vertel de handkaarten via prive-berichten, zodat je als rangeerder niet weet welke wagons er op jouw opstelterrein staan."], dict)
+                for player in game.getPlayers():
+                    self._tellHandToOthers(player, game)
+                self._tellExtraLocomotives(game)
+                self._tellHints(game)
+                self._showHelp(game, nick, dict)
+                self._tellTurn(game)
+            else:
+                self._output(["Sorry, voor Kijfhoek zijn minstens 2 spelers nodig."])
+        else:
+            dict["owner"] = owner
+            self._output(["Sorry %(nick)s, alleen %(owner)s mag een spel laten beginnen."], dict)
+
+    def _discard(self, game, nick, dict):
+        self._stoppers.discard(nick)
+        index = int(dict["index"])
+        game.discard(index)
+        if game.isOn():
+            self._tellHandToOthers(nick, game)
+            self._tellHints(game)
+        self._nextTurn(game)
+
+    def _play(self, game, nick, dict):
+        self._stoppers.discard(nick)
+        index = int(dict["index"])
+        card = game.getHandCards(nick)[index-1]
+        dict["card"] = card
+        self._output(["Jouw kaart %(index)s is een %(card)s."], dict)
+        if game.play(index):
+            color = game.getCardColor(card)
+            self._tellTrains(game, color)
+        else:
+            self._output(["Die kan niet worden gekoppeld aan een trein en belandt op de aflegstapel."], dict)
+            self._tellExtraLocomotives(game)
+        if game.isOn():
+            self._tellHandToOthers(nick, game)
+        self._nextTurn(game)
+
+    def _hint(self, game, nick, dict):
+        self._stoppers.discard(nick)
+        if game.getHintsLeft() > 0:
+            hint = dict["hint"].upper()
+            player = self._getProperPlayerName(game, dict["player"])
+            if player != nick:
+                if player in game.getPlayers():
+                    matches = game.hint(player, hint)
+                    indices = self._getMatchIndices(matches)
+                    dict["indices"] = indices
+                    dict["player"] = player
+                    dict["hint"] = hint
+                    if len(indices) == 0:
+                        self._output(["%(player)s heeft geen %(hint)s's."], dict)
+                    elif len(indices) == 1:
+                        self._output(["Kaart %(indices)s van %(player)s is een %(hint)s."], dict)
+                    else:
+                        self._output(["De kaarten %(indices)s van %(player)s zijn %(hint)s-en."], dict)
+                    self._tellHints(game)
+                    self._nextTurn(game)
+                else:
+                    dict["players"] = self._getNamelist(game.getPlayers())
+                    self._output(["Sorry %(nick)s, er is geen speler die %(player)s heet. Probeer opnieuw en kies uit %(players)s."], dict)
+            else:
+                 self._output(["Jammer %(nick)s, maar jezelf hinten is niet toegestaan. Probeer opnieuw."], dict)
+        else:
+            self._output(["Jammer %(nick)s, maar er mogen nu geen hints meer gegegeven worden. Pas na het afleggen van een kaart mag dat weer. Probeer opnieuw."], dict)
+
+    def _reorder(self, game, nick, dict):
+        self._stoppers.discard(nick)
+        numberOfHandCards = len(game.getHandCards(nick))
+        order = self._getIndicesList(dict["order"], numberOfHandCards)
+        if len(order) == numberOfHandCards:
+            game.reorderHandCards(nick, order)
+            self._output(["De handkaarten van %(nick)s zijn opnieuw gerangschikt."], dict)
+            self._tellHandToOthers(nick, game)
+        else:
+            dict["order"] = "54321"[-numberOfHandCards:]
+            self._output(["De opgegeven ordening klopt niet. Voor een omgekeerde volgorde geeft je bijvoorbeeld %(order)s op."], dict)
+
+    def _stopGame(self, game, nick, dict):
+        self._stoppers.add(nick)
+        players = set(game.getPlayers())
+        stoppingPlayers = players & self._stoppers
+        lastPlayers = players - self._stoppers
+        if len(lastPlayers) == 0:
+            self._removeGame(game)
+            self._output(["OK, iedereen wil het spelletje stoppen. Jammer, maar helaas: Game Over!"])
+        else:
+            dict["stoppingPlayers"] = self._getNamelist(stoppingPlayers)
+            dict["lastPlayers"] = self._getNamelist(lastPlayers)
+            self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
+                        "Om het spel daadwerkelijk te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
+                        "Dat zijn dus: %(lastPlayers)s."], dict)
+
     def _showStartingInstructions(self, game, nick, dict):
         self._output([
             "Ik ben een bot die het spelletje " + self.NAME + " kan faciliteren!",
@@ -90,133 +275,21 @@ class ShuntingDirector():
             "- Sorry hoor, maar ik %%bstop%%o met dit spel!",
             "Ook deze vragen mag je %%bkorter%%o formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
 
-    def _createNewGame(self, game, nick, dict):
-        self._games.append(ShuntingGame(nick))
-        self._output([
-            "Nou, %(nick)s, leuk dat je " + self.NAME + " wil spelen. Wie doet er mee? Er is minimaal nog 1 speler nodig.",
-            "Zeg 'Ik doe mee met %(nick)s.'."], dict)
-
-    def _joinGame(self, game, nick, dict):
-        game = self._getGame(dict["owner"])
-        if game:
-            if not nick in game.getPlayers():
-                game.addPlayer(nick)
-                dict["number_of_players"] = str(game.getNumberOfPlayers())
-                self._output([
-                    "Hoi %(nick)s, leuk dat je meedoet met het " + self.NAME + "-spel van %(owner)s.",
-                    "We hebben nu %(number_of_players)s spelers.",
-                    "%(owner)s, zeg jij wanneer we beginnen?"], dict)
-            else:
-                self._output(["Maar %(nick)s, je doet al mee met het " + self.NAME + "-spel van %(owner)s!"], dict)
-        else:
-            self._output(["Sorry %(nick)s, maar er is geen spel dat gestart is door %(owner)s."], dict)
-
-    def _stopGame(self, game, nick, dict):
-        self._stoppers.add(nick)
-        players = set(game.getPlayers())
-        stoppingPlayers = players & self._stoppers
-        lastPlayers = players - self._stoppers
-        if len(lastPlayers) == 0:
-            self._removeGame(game)
-            self._output(["OK, iedereen wil het spelletje stoppen. Jammer, maar helaas: Game Over!"])
-        else:
-            dict["stoppingPlayers"] = ", ".join(stoppingPlayers)
-            dict["lastPlayers"] = ", ".join(lastPlayers)
-            self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
-                        "Om het spel daadwerkelijk te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
-                        "Dat zijn dus: %(lastPlayers)s."], dict)
-
-    def _stillPlayingAnotherGame(self, game, nick, dict):
-        players = ", ".join(game.getPlayers())
-        dict["players"] = players
-        self._output(["Sorry %(nick)s, je speelt al een spel met %(players)s!"], dict)
-
-    def _startGame(self, game, nick, dict):
-        owner = game.getOwner()
-        if nick == owner:
-            if len(game.getPlayers()) > 1:
-                game.start()
-                self._output(["Ik vertel de handkaarten via prive-berichten, zodat je als rangeerder niet weet welke wagons er op jouw opstelterrein staan."], dict)
-                for player in game.getPlayers():
-                    self._tellHandToOthers(player, game)
-                self._tellExtraLocomotives(game)
-                self._tellHints(game)
-                self._showHelp(game, nick, dict)
-                self._tellTurn(game)
-            else:
-                self._output(["Sorry, voor Kijfhoek zijn minstens 2 spelers nodig."])
-        else:
-            dict["owner"] = owner
-            self._output(["Sorry %(nick)s, alleen %(owner)s mag een spel laten beginnen."], dict)
-
-    def _discard(self, game, nick, dict):
-        index = int(dict["index"])
-        game.discard(index)
-        if game.isOn():
-            self._tellHandToOthers(nick, game)
-            self._tellHints(game)
-        self._nextTurn(game)
-
-    def _play(self, game, nick, dict):
-        index = int(dict["index"])
-        card = game.getHandCards(nick)[index-1]
-        dict["card"] = card
-        self._output(["Jouw kaart %(index)s is een %(card)s."], dict)
-        if game.play(index):
-            color = game.getCardColor(card)
-            self._tellTrains(game, color)
-        else:
-            self._output(["Die kan niet worden gekoppeld aan een trein en belandt op de aflegstapel."], dict)
-            self._tellExtraLocomotives(game)
-        if game.isOn():
-            self._tellHandToOthers(nick, game)
-        self._nextTurn(game)
-
-    def _hint(self, game, nick, dict):
-        if game.getHintsLeft() > 0:
-            hint = dict["hint"].upper()
-            player = self._getProperPlayerName(game, dict["player"])
-            if player != nick:
-                if player in game.getPlayers():
-                    matches = game.hint(player, hint)
-                    indices = self._getMatchIndices(matches)
-                    dict["indices"] = indices
-                    dict["player"] = player
-                    dict["hint"] = hint
-                    if len(indices) == 0:
-                        self._output(["%(player)s heeft geen %(hint)s's."], dict)
-                    elif len(indices) == 1:
-                        self._output(["Kaart %(indices)s van %(player)s is een %(hint)s."], dict)
-                    else:
-                        self._output(["De kaarten %(indices)s van %(player)s zijn %(hint)s-en."], dict)
-                    self._tellHints(game)
-                    self._nextTurn(game)
-                else:
-                    self._output(["Sorry %(nick)s, er is geen speler die %(player)s heet. Probeer opnieuw."], dict)
-            else:
-                 self._output(["Jammer %(nick)s, maar jezelf hinten is niet toegestaan. Probeer opnieuw."], dict)
-        else:
-            self._output(["Jammer %(nick)s, maar er mogen nu geen hints meer gegegeven worden. Pas na het afleggen van een kaart mag dat weer. Probeer opnieuw."], dict)
-
-    def _reorder(self, game, nick, dict):
-        numberOfHandCards = len(game.getHandCards(nick))
-        order = self._getIndicesList(dict["order"], numberOfHandCards)
-        if len(order) == numberOfHandCards:
-            game.reorderHandCards(nick, order)
-            self._output(["De handkaarten van %(nick)s zijn opnieuw gerangschikt."], dict)
-            self._tellHandToOthers(nick, game)
-        else:
-            dict["order"] = "54321"[-numberOfHandCards:]
-            self._output(["De opgegeven ordening klopt niet. Voor een omgekeerde volgorde geeft je bijvoorbeeld %(order)s op."], dict)
-
-    def _getIndicesList(self, indicesString, maxIndex):
-        indicesList = []
-        for index in indicesString:
-            if not index in indicesList:
-                index = int(index)
-                if index <= maxIndex:
-                    indicesList.append(index)
-        return indicesList
+    def _showRules(self, game, nick, dict):
+        self._output(["De spelregels zijn erg eenvoudig.",
+            "CONTEXT: Op Kijfhoek is het een drukte van belang. Van alle wagons die aankomen moeten verschillende treinen worden samengesteld. Iedere trein heeft een eigen kleur en de wagons moeten in de juiste volgorde worden aangekoppeld. Samen met je collega rangeerders heb je maar een nacht om de treinen op orde te krijgen!",
+            "DOEL: De rangeerders bouwen samen vijf goederentreinen in de kleuren van de vervoerders: R(ood), O(ranje), G(roen), B(lauw) en P(aars). Elke trein krijgt 5 wagons, genummerd 1 tot en met 5. Probeer samen de treinen zo compleet mogelijk te maken.",
+            "VERLOOP: Om beurten speel je kaarten (de wagons) en geef je elkaar hints. Iedere speler krijgt handkaarten (je eigen opstelterrein), maar alleen de andere spelers krijgen te zien welke wagons daarop staan. Verder staan er nog wagons in de wachtrij (de trekstapel).",
+            "BEURT: Tijdens je beurt kies je uit drie mogelijkheden:",
+            "1) Geef een hint aan een medespeler. Kies een kleur of een getal en vertel je medespeler welke van zijn of haar wagons daaraan voldoen. Maar let op: je hebt initieel maar 8 hints beschikbaar.",
+            "2) Leg een kaart af en vul je hand weer aan. En als er minder dan 8 hints over zijn, komt er weer een hint bij.",
+            "3) Speel een kaart om een trein te starten of te verlengen. De kleur moet kloppen en de nummers van de wagons moeten netjes oplopen. Maak je een trein compleet en resten er minder dan 8 hints, komt er weer een hint bij. Maar kan de gespeelde wagon niet worden aangelegd, dan moet die weg worden gerangeerd door een noodlocomotief. In alle gevallen vul je je hand weer aan.",
+            "EINDE: Het spel eindigt als:",
+            "a) Jullie alle treinen compleet hebt (wauw!).",
+            "b) De derde noodlocomotief is ingezet.",
+            "c) Nadat de laatste kaart getrokken is: dan krijgt iedereen, inclusief de rangeerder die de laatste kaart trok, nog 1 beurt.",
+            "SCORE: De score is het totaal aantal wagons in de opgebouwde treinen.",
+            "NOTA BENE: Er zijn van elke kleur drie wagons met het cijfer 1, twee met 2, 3 en 4 en slechts een enkele met een 5."], dict)
 
     def _showHints(self, game, nick, dict):
         if game.isOn():
@@ -236,28 +309,10 @@ class ShuntingDirector():
         else:
             self._output(["Initieel kan driemaal een noodlocomotief worden ingezet. Maar op dit moment is het spel nog niet begonnen."], dict)
 
-    def _showRules(self, game, nick, dict):
-        self._output(["De spelregels zijn erg eenvoudig.",
-            "CONTEXT: Op Kijfhoek is het een drukte van belang. Van alle wagons die aankomen moeten verschillende treinen worden samengesteld. Iedere trein heeft een eigen kleur en de wagons moeten in de juiste volgorde worden aangekoppeld. Samen met je collega rangeerders heb je maar een nacht om de treinen op orde te krijgen!",
-            "DOEL: De rangeerders bouwen samen vijf goederentreinen in de kleuren van de vervoerders: R(ood), O(ranje), G(roen), B(lauw) en P(aars). Elke trein krijgt 5 wagons, genummerd 1 tot en met 5. Probeer samen de treinen zo compleet mogelijk te maken.",
-            "VERLOOP: Om beurten speel je kaarten (de wagons) en geef je elkaar hints. Iedere speler krijgt handkaarten (je eigen opstelterrein), maar alleen de andere spelers krijgen te zien welke wagons daarop staan. Verder staan er nog wagons in de wachtrij (de trekstapel).",
-            "BEURT: Tijdens je beurt kies je uit drie mogelijkheden:",
-            "1) Geef een hint aan een medespeler. Kies een kleur of een getal en vertel je medespeler welke van zijn of haar wagons daaraan voldoen. Maar let op: je hebt initieel maar 8 hints beschikbaar.",
-            "2) Leg een kaart af en vul je hand weer aan. En als er minder dan 8 hints over zijn, komt er weer een hint bij.",
-            "3) Speel een kaart om een trein te starten of te verlengen. De kleur moet kloppen en de nummers van de wagons moeten netjes oplopen. Maak je een trein compleet en resten er minder dan 8 hints, komt er weer een hint bij. Maar kan de gespeelde wagon niet worden aangelegd, dan moet die weg worden gerangeerd door een noodlocomotief. In alle gevallen vul je je hand weer aan.",
-            "EINDE: Het spel eindigt als:",
-            "a) Jullie alle treinen compleet hebt (wauw!).",
-            "b) De derde noodlocomotief is ingezet.",
-            "c) Nadat de laatste kaart getrokken is: dan krijgt iedereen, inclusief de rangeerder die de laatste kaart trok, nog 1 beurt.",
-            "SCORE: De score is het totaal aantal wagons in de opgebouwde treinen.",
-            "NOTA BENE: Er zijn van elke kleur drie wagons met het cijfer 1, twee met 2, 3 en 4 en slechts een enkele met een 5."], dict)
-
-    def _nextTurn(self, game):
-        if game.isOn():
-            self._tellTurn(game)
-        else:
-            self._tellGameOver(game)
-            self._removeGame(game)
+    def _removeGame(self, game):
+        for player in game.getPlayers():
+            self._stoppers.discard(player)
+        self._games.remove(game)
 
     def _tellGameOver(self, game):
         self._output(["Het spel is afgelopen."])
@@ -277,10 +332,19 @@ class ShuntingDirector():
         else:
             self._output(["Legendarisch!!!!!"])
 
-    def _removeGame(self, game):
-        for player in game.getPlayers():
-            self._stoppers.discard(player)
-        self._games.remove(game)
+    def _tellJoinOrStart(self, game, dict):
+        dict["owner"] = game.getOwner()
+        dict["number_of_players"] = game.getNumberOfPlayers()
+        dict["players"] = self._getNamelist(game.getPlayers())
+        self._output("We hebben nu %(number_of_players)i spelers: %(players)s." % dict)
+        if game.getNumberOfPlayers() == 1:
+            self._output(["Wie doet er mee? Er is minimaal nog een tweede speler nodig.",
+                    "Zeg 'Ik %%bspeel mee%%o met %%b%(owner)s%%o.'."], dict)
+        elif game.getNumberOfPlayers() < 5:
+            self._output(["%(owner)s, zeg jij wanneer we beginnen?"], dict)
+        else:
+            self._output(["We hebben nu het maximale aantal spelers bereikt. We beginnen!"])
+            self._startGame(game, game.getOwner(), dict)
 
     def _tellHandToOthers(self, player, game):
         hand = ",".join(game.getHandCards(player))
@@ -323,30 +387,6 @@ class ShuntingDirector():
 
     def _tellTurn(self, game):
         self._output(["De beurt is aan %s." % game.getActivePlayer()])
-
-    def _getProperPlayerName(self, game, nick):
-        for player in game.getPlayers():
-            if nick == player.lower():
-                return player
-        return nick
-
-    def _getMatchIndices(self, matches):
-        indices = ""
-        for i in range(len(matches)):
-            if matches[i]:
-                if indices == "":
-                    indices = str(i+1)
-                else:
-                    indices = indices.replace(" en", ",")
-                    indices = indices + " en " + str(i+1)
-        return indices
-
-    def _output(self, lines, dict={}):
-        for line in lines:
-            self._streamer.output(line % dict)
-
-    def _privateOutput(self, nick, line, dict={}):
-        self._streamer.privateOutput(nick, line % dict)
 
 class _Command():
     def __init__(self, gameState, isActive, regex, function):

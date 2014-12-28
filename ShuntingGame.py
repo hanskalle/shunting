@@ -76,8 +76,20 @@ class ShuntingGame:
             raise Exception("Game only accepts extra players at setup.")
         if newPlayer in self.getPlayers():
             raise Exception("You cannot add a player twice.")
+        if len(self._players) == 5:
+            raise Exception("The game has a maximum of 5 players.")
         self._players.append(newPlayer)
         self._hands[newPlayer] = []
+
+    def removePlayer(self, player):
+        if not self.isSettingUp():
+            raise Exception("You can only remove players at setup.")
+        if player not in self._players:
+            raise Exception("You can only remove existing players.")
+        if player == self._players[0]:
+            raise Exception("You must not remove the owner of the game.")
+        self._players.remove(player)
+        del(self._hands[player])
 
     def getOwner(self):
         return self._players[0]

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: latin-1 -*-
 
 import unittest
 from ShuntingDirector import ShuntingDirector
@@ -39,7 +40,7 @@ class GIVEN_a_director_with_no_games_running(unittest.TestCase):
     def test_WHEN_the_same_player_says_Ik_doe_mee_met_somenone_THEN_then_he_is_not_added_again(self):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.director.parse(self.nick1, "Ik doe mee met %s!" % self.nick1)
-        self.assertEqual(len(self.director._getGame(self.nick1).getPlayers()), 1)
+        self.assertEqual(self.director._getGame(self.nick1).getNumberOfPlayers(), 1)
 
 class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
     def setUp(self):
@@ -52,11 +53,11 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
 
     def test_WHEN_the_owner_says_We_beginnen_THEN_the_game_starts_and_the_cards_of_players_are_secretly_told_to_all_others(self):
         self.director.parse(self.nick1, "We beginnen.")
+        self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick1]))
         self.assertFalse(self.output.privateMatch(self.nick1, ["De hand van %s: " % self.nick1]))
         self.assertTrue(self.output.privateMatch(self.nick1, ["De hand van %s: " % self.nick2]))
         self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1]))
         self.assertFalse(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick2]))
-        self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick1]))
 
     def test_WHEN_a_player_ask_for_the_rules_THEN_they_are_told(self):
         self.director.parse(self.nick2, "Wat zijn de spelregels?")
@@ -64,16 +65,28 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
 
     def test_WHEN_one_says_Laten_we_shunting_spelen_THEN_he_is_reminded_of_the_current_game(self):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
-        self.assertTrue(self.output.match(["Sorry %s, je speelt al een spel met %s, %s!" % (self.nick1, self.nick1, self.nick2)]))
+        self.assertTrue(self.output.match(["Sorry %s, je speelt al een spel met %s en %s!" % (self.nick1, self.nick1, self.nick2)]))
 
-    def test_WHEN_one_says_Ik_ga_stoppen_THEN_the_game_keeps_running(self):
-        self.director.parse(self.nick1, "Ik stop er mee.")
-        self.assertTrue(self.output.match(["De spelers die het spel willen stoppen"]))
+    def test_WHEN_3_other_players_join_THEN_the_game_is_started_automaticly(self):
+        self.director.parse("Jaap", "Ik speel mee met %s." % self.nick1)
+        self.director.parse("Joop", "Ik speel mee met %s." % self.nick1)
+        self.director.parse("Joep", "Ik speel mee met %s." % self.nick1)
+        self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick1]))
 
-    def test_WHEN_boith_say_Ik_stop_THEN_the_game_stops(self):
-        self.director.parse(self.nick1, "Ik stop")
-        self.director.parse(self.nick2, "Ik ga ook stoppen.")
-        self.assertTrue(self.output.match(["OK, iedereen wil het spelletje stoppen"]))
+    def test_WHEN_the_owner_says_stop_THEN_that_is_not_allowed(self):
+        self.director.parse(self.nick1, "stop")
+        self.assertTrue(self.output.match(["Degene die het spel gestart heeft, mag pas stoppen als de rest dat eerst gedaan heeft."]))
+
+    def test_WHEN_player2_says_stop_THEN_that_is_confirmed_and_there_is_one_player_left(self):
+        self.director.parse(self.nick2, "stop")
+        self.assertTrue(self.output.match(["Jammer dat je niet meespeelt %s" % self.nick2]))
+        self.assertEqual(self.director._getGame(self.nick1).getNumberOfPlayers(), 1)
+
+    def test_WHEN_player2_says_stop_AND_player1_says_stop_THEN_the_game_is_over(self):
+        self.director.parse(self.nick2, "stop")
+        self.director.parse(self.nick1, "stop")
+        self.assertTrue(self.output.match(["OK, dan beëindigen we het spel. En het was nog niet eens begonnen!"]))
+        self.assertTrue(self.director._getGame(self.nick1) == None)
 
 class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
     def setUp(self):
@@ -185,6 +198,22 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
             self.director.parse(self.nick2, "Speel 1")
         self.assertTrue(self.output.match(["Het spel is afgelopen."]))
         self.assertTrue(self.output.match(["Jullie hebben in totaal [1-9]?[0-9] wagons correct opgesteld."]))
+
+    def test_WHEN_player1_say_stop_THEN_is_not_over_yet(self):
+        self.director.parse(self.nick1, "Ik stop er mee!")
+        self.director._getGame(self.nick1)
+
+    def test_WHEN_player1_AND_player2_says_stop_THEN_the_game_stops(self):
+        self.director.parse(self.nick1, "Ik stop")
+        self.director.parse(self.nick2, "Ik ga ook stoppen.")
+        self.assertTrue(self.output.match(["OK, iedereen wil het spelletje stoppen"]))
+        self.assertEquals(self.director._getGame(self.nick1), None)
+
+    def test_WHEN_player2_AND_player1_says_stop_THEN_the_game_stops(self):
+        self.director.parse(self.nick1, "Ik stop")
+        self.director.parse(self.nick2, "Ik ga ook stoppen.")
+        self.assertTrue(self.output.match(["OK, iedereen wil het spelletje stoppen"]))
+        self.assertEquals(self.director._getGame(self.nick1), None)
 
 class MemoryStreamer():
     def __init__(self):
