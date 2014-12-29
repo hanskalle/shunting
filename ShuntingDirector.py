@@ -267,24 +267,24 @@ class ShuntingDirector():
         self._output([
             "Ik ben een bot die het spelletje " + self.NAME + " kan faciliteren!",
             "Op de volgende manieren kun je " + self.NAME + " bijvoorbeeld starten:",
-            "  Laten we %%b" + self.NAME + " spelen%%o.",
+            "  Laten we " + self.NAME + " spelen.",
             "  Ik wil graag " + self.NAME + " spelen.",
             "Maar je kunt ook eerst vragen om de spelregels van " + self.NAME + "."])
 
     def _showHelp(self, game, nick, dict):
         self._output([
             "In je beurt heb je drie mogelijkheden:",
-            "1) %%bSpeel%%o kaart %%b<index>%%o. Bijvoorbeeld: Speel kaart 2. Of: Ik speel 2.",
-            "2) %%bLeg%%o kaart %%b<index> af%%o. Bijvoorbeeld: Leg kaart 2 af. Of: Ik leg 4 weg.",
-            "3) %%bHint <kleur/cijfer> aan <nick>%%o. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
+            "1) Speel kaart <index>. Bijvoorbeeld: Speel kaart 2. Of: Ik speel 2.",
+            "2) Leg kaart <index> af. Bijvoorbeeld: Leg kaart 2 af. Of: Ik leg 4 weg.",
+            "3) Hint <kleur/cijfer> aan <nick>. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
             "In en buiten je beurt kun je de volgende dingen doen.",
-            "- %%bOrden%%o hand %%b35124%%o. Hiermee verwissel je de volgorde van je handkaarten. Dat kan helpen bij het onthouden van de hints.",
-            "- Welke %%btreinen%%o hebben we nu%%b?%%o",
-            "- Hoeveel %%bhints%%o zijn er nog beschikbaar%%b?%%o",
-            "- Wat is het aantal %%bnoodloc%%oomotieven dat we nog mogen inzetten%%b?%%o",
-            "- Kun je de spel%%bregels%%o nog een keer precies vertellen%%b?%%o",
-            "- Sorry hoor, maar ik %%bstop%%o met dit spel!",
-            "Ook deze vragen mag je %%bkorter%%o formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
+            "- Orden hand 35124. Hiermee verwissel je de volgorde van je handkaarten. Dat kan helpen bij het onthouden van de hints.",
+            "- Welke treinen hebben we nu?",
+            "- Hoeveel hints zijn er nog beschikbaar?",
+            "- Wat is het aantal noodlocomotieven dat we nog mogen inzetten?",
+            "- Kun je de spelregels nog een keer precies vertellen?",
+            "- Sorry hoor, maar ik stop met dit spel!",
+            "Ook deze vragen mag je korter formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
 
     def _showRules(self, game, nick, dict):
         self._output(["De spelregels zijn erg eenvoudig.",
@@ -350,7 +350,7 @@ class ShuntingDirector():
         self._output(["We hebben nu %(number_of_players)i spelers: %(players)s."], dict)
         if game.getNumberOfPlayers() == 1:
             self._output(["Wie doet er mee? Er is minimaal nog een tweede speler nodig.",
-                    "Zeg 'Ik %%bspeel mee%%o met %%b%(owner)s%%o.'."], dict)
+                    "Zeg 'Ik speel mee met %(owner)s.'."], dict)
         elif game.getNumberOfPlayers() < 5:
             self._output(["%(owner)s, zeg jij wanneer we beginnen?"], dict)
         else:
