@@ -101,7 +101,7 @@ class Just_started_game_with_two_players(unittest.TestCase):
         self.assertEqual(self.game._getNumberOfCardsInDeck(), 40);
         
     def test_Game_is_on(self):
-        self.assertEqual(self.game.isOn())
+        self.assertTrue(self.game.isOn())
         
     def test_Game_is_not_over(self):
         self.assertFalse(self.game.isOver())
