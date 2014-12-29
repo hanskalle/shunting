@@ -293,7 +293,7 @@ class ShuntingDirector():
             "- Orden hand 35124. Hiermee verwissel je de wagons op je opstelsporen. Dat kan helpen bij het onthouden van de hints.",
             "- Welke treinen hebben we nu?",
             "- Hoeveel hints zijn er nog beschikbaar?",
-            "- Wat is het aantal noodlocomotieven dat we nog mogen inzetten?",
+            "- Hoeveel foute wagons kunnen we nog kwijt op het zijspoor?",
             "- Kun je de spelregels nog een keer precies vertellen?",
             "- Sorry hoor, maar ik stop met dit spel!",
             "Ook deze vragen mag je korter formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
@@ -302,7 +302,7 @@ class ShuntingDirector():
         self._output(["De spelregels zijn erg eenvoudig.",
             "CONTEXT: Op Kijfhoek is het een drukte van belang. Van alle wagons die aankomen moeten verschillende treinen worden samengesteld. Iedere trein heeft een eigen kleur en de wagons moeten in de juiste volgorde worden aangekoppeld. Samen met je collega rangeerders heb je maar één nacht om de treinen op orde te krijgen!",
             "DOEL: De rangeerders bouwen samen vijf goederentreinen in de kleuren van de vervoerders: R(ood), O(ranje), G(roen), B(lauw) en P(aars). Elke trein krijgt 5 wagons, genummerd 1 tot en met 5. Probeer samen de treinen zo compleet mogelijk te maken.",
-            "VERLOOP: Om beurten rangeer je wagons en geef je elkaar hints. Iedere speler beschikt over een eigen opstelterrein met een aantal wagons. Maar let op: alleen de andere spelers krijgen te zien welke dat zijn. Je hebt dus de hints van anderen nodig om te weten wat je met je wagon moet doen. Zodra er een plaats vrijkomt op je opstelterrein, wordt daar een wagon uit het wachtspoor op geplaatst.",
+            "VERLOOP: Om beurten rangeer je wagons en geef je elkaar hints. Iedere speler beschikt over een eigen opstelterrein met een aantal wagons. Maar let op: alleen de andere spelers krijgen te zien welke dat zijn. Je hebt dus de hints van anderen nodig om te weten wat je met je wagons moet doen. Zodra er een plaats vrijkomt op je opstelterrein, wordt daar vanaf het wachtspoor een wagon op geplaatst.",
             "BEURT: Tijdens je beurt kies je uit drie mogelijkheden:",
             "1) Geef een hint aan een medespeler. Kies een kleur of een getal en vertel je medespeler welke van zijn of haar wagons daaraan voldoen. Maar let op: je hebt initieel maar 8 hints beschikbaar.",
             "2) Rangeer een wagon weg, deze komt niet meer terug in het spel. De lege plek op je opstelterrein wordt ingenomen door een wagon van het wachtspoor. En als er minder dan 8 hints over zijn, komt er weer een hint bij.",
@@ -330,7 +330,7 @@ class ShuntingDirector():
         if game.isOn():
             self._tellExtraLocomotives(game)
         else:
-            self._output(["Initieel kan driemaal een noodlocomotief worden ingezet. Maar op dit moment is het spel nog niet begonnen."], dict)
+            self._output(["Initieel is er plek voor 2 foute wagons op het zijspoor. Bij de derde foute wagon raakt het heuvelspoor geblokeerd en is het spel voorbij. Maar op dit moment is het spel nog niet begonnen."], dict)
 
     def _removeGame(self, game):
         for player in game.getPlayers():
