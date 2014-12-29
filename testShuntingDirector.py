@@ -145,7 +145,6 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
     def test_WHEN_player1_says_Speel_kaart_5_THEN_the_train_or_the_extraLocomotives_are_updated_and_his_new_hand_is_shown_to_others_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Heuvel wagon 5")
         trainUpdate = self.output.match(["Trein [ROGBP][a-z]+ heeft 1 wagon."])
-        self.output.dump()
         extraLocomotivesUpdate = self.output.match(["Er is plek voor nog maar 1 foute wagon op het zijspoor"])
         self.assertTrue(trainUpdate != extraLocomotivesUpdate)
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
