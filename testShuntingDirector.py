@@ -69,10 +69,10 @@ class GIVEN_a_two_player_game_in_setup_mode(unittest.TestCase):
     def test_WHEN_the_owner_says_We_beginnen_THEN_the_game_starts_and_the_cards_of_players_are_secretly_told_to_all_others(self):
         self.director.parse(self.nick1, "We beginnen.")
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick1]))
-        self.assertFalse(self.output.privateMatch(self.nick1, ["De hand van %s: " % self.nick1]))
-        self.assertTrue(self.output.privateMatch(self.nick1, ["De hand van %s: " % self.nick2]))
-        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1]))
-        self.assertFalse(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick2]))
+        self.assertFalse(self.output.privateMatch(self.nick1, ["Het opstelterrein van %s bevat de wagons: " % self.nick1]))
+        self.assertTrue(self.output.privateMatch(self.nick1, ["Het opstelterrein van %s bevat de wagons: " % self.nick2]))
+        self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1]))
+        self.assertFalse(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick2]))
 
     def test_WHEN_a_player_ask_for_the_rules_THEN_they_are_told(self):
         self.director.parse(self.nick2, "Wat zijn de spelregels?")
@@ -114,14 +114,14 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
         self.director.parse(self.nick1, "We beginnen.")
 
     def test_WHEN_player1_says_Ik_leg_1_af_THEN_the_card_is_discarded_and_the_new_cards_are_secretly_told_to_player2(self):
-        self.director.parse(self.nick1, "Ik leg 3 af.")
-        self.assertTrue(self.output.privateMatch(self.nick1, ["De hand van %s: " % self.nick2]))
-        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.director.parse(self.nick1, "Rangeer wagon 3 weg.")
+        self.assertTrue(self.output.privateMatch(self.nick1, ["Het opstelterrein van %s bevat de wagons: " % self.nick2]))
+        self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
 
     def test_WHEN_player1_says_Orden_kaarten_54321_THEN_his_cards_are_reordered_and_the_cards_are_secretly_told_to_player2_and_its_still_player1s_turn(self):
         self.director.parse(self.nick1, "Orden kaarten 54321")
-        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick1]))
 
     def test_WHEN_player1_says_Orden_kaarten_54____THEN_his_cards_are_reordered_and_the_cards_are_secretly_told_to_player2_and_its_still_player1s_turn(self):
@@ -129,35 +129,36 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
         self.director.parse(self.nick1, "Orden kaarten 54321")
         newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
         self.assertNotEqual(originalOrder, newOrder)
-        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.director.parse(self.nick1, "Orden kaarten 54321")
         newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
         self.assertEqual(originalOrder, newOrder)
         self.director.parse(self.nick1, "Orden kaarten 45...")
         newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
         self.assertNotEqual(originalOrder, newOrder)
-        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.director.parse(self.nick1, "Orden kaarten 345..")
         newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
         self.assertEqual(originalOrder, newOrder)
         self.assertFalse(self.output.match(["De beurt is aan %s." % self.nick2]))
 
     def test_WHEN_player1_says_Speel_kaart_5_THEN_the_train_or_the_extraLocomotives_are_updated_and_his_new_hand_is_shown_to_others_and_it_is_told_who_is_next(self):
-        self.director.parse(self.nick1, "Speel kaart 5")
-        trainUpdate = self.output.match(["Trein [ROGBP] heeft "])
-        extraLocomotivesUpdate = self.output.match(["Er zijn nog 2 noodlocomotieven"])
+        self.director.parse(self.nick1, "Heuvel wagon 5")
+        trainUpdate = self.output.match(["Trein [ROGBP][a-z]+ heeft 1 wagon."])
+        self.output.dump()
+        extraLocomotivesUpdate = self.output.match(["Er is plek voor nog maar 1 foute wagon op het zijspoor"])
         self.assertTrue(trainUpdate != extraLocomotivesUpdate)
-        self.assertTrue(self.output.privateMatch(self.nick2, ["De hand van %s: " % self.nick1, "De hand van %s: " % self.nick1]))
+        self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
 
-    def test_WHEN_player1_says_Hint_David_3_THEN_that_player_is_hinted_and_hints_left_become_7_and_it_is_told_who_is_next(self):
-        self.director.parse(self.nick1, "Hint David: Blaauw")
+    def test_WHEN_player1_says_Hint_David_Blauw_THEN_that_player_is_hinted_and_hints_left_become_7_and_it_is_told_who_is_next(self):
+        self.director.parse(self.nick1, "Hint David: Blauw")
         hintCount = 0
-        if self.output.match(["%s heeft geen B's" % self.nick2]):
+        if self.output.match(["%s heeft geen B-en" % self.nick2]):
             hintCount += 1
-        if self.output.match(["Kaart [1-5] van %s is een B." % self.nick2]):
+        if self.output.match(["Wagon [1-5] van %s is een B." % self.nick2]):
             hintCount += 1
-        if self.output.match(["De kaarten [1-5](, [1-5])* en [1-5] van %s zijn B-en." % self.nick2]):
+        if self.output.match(["De wagons [1-5](, [1-5])* en [1-5] van %s zijn B-en." % self.nick2]):
             hintCount += 1
         self.assertEqual(hintCount, 1)
         self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
@@ -192,17 +193,17 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
                                         "De beurt is aan %s." % self.nick1]))
         self.director.parse(self.nick1, "Hint Blauw aan %s" % self.nick2)
         self.assertTrue(self.output.match(["Jammer %s, maar er mogen nu geen hints meer gegegeven worden." % self.nick1]))
-        self.director.parse(self.nick1, "Leg 1 af")
+        self.director.parse(self.nick1, "Rangeer 1 af")
         self.assertTrue(self.output.match(["Jammer", "Er mag", "De beurt is aan %s." % self.nick2]))
 
     def test_WHEN_player1_says_Hint_David_B_THEN_that_player_is_hinted_and_hints_left_become_7_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Hint speler David het prachtige getal van de eenheid: 3")
         hintCount = 0
-        if self.output.match(["%s heeft geen 3's." % self.nick2]):
+        if self.output.match(["%s heeft geen 3-en." % self.nick2]):
             hintCount += 1
-        if self.output.match(["Kaart [1-5] van %s is een 3." % self.nick2]):
+        if self.output.match(["Wagon [1-5] van %s is een 3." % self.nick2]):
             hintCount += 1
-        if self.output.match(["De kaarten [1-5](, [1-5])* en [1-5] van %s zijn 3-en." % self.nick2]):
+        if self.output.match(["De wagons [1-5](, [1-5])* en [1-5] van %s zijn 3-en." % self.nick2]):
             hintCount += 1
         self.assertEqual(hintCount, 1)
         self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
@@ -222,17 +223,17 @@ class GIVEN_a_just_started_game_with_two_players(unittest.TestCase):
         self.assertTrue(self.output.match(["Er mogen nog 8 hints gegeven worden."]))
 
     def test_WHEN_a_player_ask_for_the_number_of_extraLocomotives_THEN_that_is_told(self):
-        self.director.parse(self.nick2, "Hoeveel noodlocs hebben we nog?")
-        self.assertTrue(self.output.match(["Er zijn nog 3 noodlocomotieven om foute wagons af te rangeren."]))
+        self.director.parse(self.nick2, "Hoeveel plekken op het zijspoor hebben we nog?")
+        self.assertTrue(self.output.match(["Er is nog plek voor 2 foute wagons op het zijspoor"]))
 
     def test_WHEN_a_player_ask_for_the_trains_THEN_that_is_told(self):
         self.director.parse(self.nick2, "Hoe staan onze treinen er voor?")
-        self.assertTrue(self.output.match(["Trein B heeft nog geen enkele wagon."]))
+        self.assertTrue(self.output.match(["Trein Blauw heeft nog geen enkele wagon."]))
 
     def test_WHEN_players_play_lots_of_wrong_cards_THEN_the_game_is_over_and_the_score_is_told(self):
         for i in range(5):
-            self.director.parse(self.nick1, "Speel 1")
-            self.director.parse(self.nick2, "Speel 1")
+            self.director.parse(self.nick1, "Heuvel 1")
+            self.director.parse(self.nick2, "Heuvel 1")
         self.assertTrue(self.output.match(["Het spel is afgelopen."]))
         self.assertTrue(self.output.match(["Jullie hebben in totaal [1-9]?[0-9] wagons correct opgesteld."]))
 
