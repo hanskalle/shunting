@@ -30,7 +30,7 @@ class New_game(unittest.TestCase):
         self.game.addPlayer("David")
         self.assertRaises(Exception, self.game.addPlayer, "David")
 
-class Game_in_setup_with_5_players(unittest.TestCase):
+class Five_player_game_in_setup(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
@@ -64,7 +64,7 @@ class Game_in_setup_with_5_players(unittest.TestCase):
     def test_Cannot_remove_the_owner_of_the_game(self):
         self.assertRaises(Exception, self.game.removePlayer, self.player1)
 
-class Just_started_game_with_two_players(unittest.TestCase):
+class Just_started_2_player_game(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
@@ -159,7 +159,7 @@ class Just_started_game_with_two_players(unittest.TestCase):
             self.game.discard(1)
         self.assertEqual(self.game._getNumberOfCardsInDeck(), 30);
 
-class Just_started_game_with_3_players(unittest.TestCase):
+class Just_started_3_player_game(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
@@ -173,7 +173,7 @@ class Just_started_game_with_3_players(unittest.TestCase):
         for player in self.game.getPlayers():
             self.assertEqual(self.game.getNumberOfHandCards(player), 5)
 
-class Just_started_game_with_4_players(unittest.TestCase):
+class Just_started_4_player_game(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
@@ -189,7 +189,7 @@ class Just_started_game_with_4_players(unittest.TestCase):
         for player in self.game.getPlayers():
             self.assertEqual(self.game.getNumberOfHandCards(player), 4)
 
-class Just_started_game_with_5_players(unittest.TestCase):
+class Just_started_5_player_game(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
@@ -207,7 +207,7 @@ class Just_started_game_with_5_players(unittest.TestCase):
         for player in self.game.getPlayers():
             self.assertEqual(self.game.getNumberOfHandCards(player), 4)
 
-class Two_just_started_games_with_2_players(unittest.TestCase):
+class Two_just_started_2_player_games(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
