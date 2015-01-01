@@ -46,8 +46,8 @@ class Director_with_no_games_running(unittest.TestCase):
 
 class One_player_game_in_setup(unittest.TestCase):
     def setUp(self):
-        self.nick1 = "someone"
-        self.nick2 = "another"
+        self.nick1 = "SomeOne"
+        self.nick2 = "Another"
         self.output = MemoryStreamer()
         self.director = ShuntingDirector(self.output)
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")

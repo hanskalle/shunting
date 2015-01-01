@@ -69,6 +69,7 @@ class ShuntingDirector():
 
     def _getGame(self, nick):
         gameFound = None
+        nick = nick.lower()
         for game in self._games:
             for player in game.getPlayers():
                 if nick == player.lower():
