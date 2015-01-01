@@ -39,9 +39,6 @@ class ShuntingGame:
         import random
         random.shuffle(self._deck)
 
-    def _getNumberOfCardsInDeck(self):
-        return len(self._deck)
-
     def _getCardFromDeck(self):
         if len(self._deck) == 0:
             Exception("Cannot draw from empty deck.")
@@ -111,6 +108,9 @@ class ShuntingGame:
         if player is None:
             player = self._activePlayer
         return len(self._hands[player])
+
+    def getNumberOfCardsInDeck(self):
+        return len(self._deck)
 
     def _setupHandForTest(self, player, cards):
         if not self.isSettingUp():
@@ -219,7 +219,7 @@ class ShuntingGame:
         self._activePlayer = self._players[0]
 
     def _isLastRound(self):
-        return self._getNumberOfCardsInDeck() ==0
+        return self.getNumberOfCardsInDeck() ==0
 
     def _nextTurn(self):
         if not self.isOn():

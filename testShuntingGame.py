@@ -98,7 +98,7 @@ class Just_started_2_player_game(unittest.TestCase):
         self.assertEqual(self.game.getHintsLeft(), 8);
         
     def test_Deck_has_40_cards_left(self):
-        self.assertEqual(self.game._getNumberOfCardsInDeck(), 40);
+        self.assertEqual(self.game.getNumberOfCardsInDeck(), 40);
         
     def test_Game_is_on(self):
         self.assertTrue(self.game.isOn())
@@ -157,7 +157,7 @@ class Just_started_2_player_game(unittest.TestCase):
     def test_After_discarding_10_cards_Deck_has_30_cards_left(self):
         for i in range(10):
             self.game.discard(1)
-        self.assertEqual(self.game._getNumberOfCardsInDeck(), 30);
+        self.assertEqual(self.game.getNumberOfCardsInDeck(), 30);
 
 class Just_started_3_player_game(unittest.TestCase):
     def setUp(self):

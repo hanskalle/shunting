@@ -237,6 +237,10 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick2, "Hoeveel plekken op het zijspoor hebben we nog?")
         self.assertTrue(self.output.match(["Er is nog plek voor 2 foute wagons op het zijspoor"]))
 
+    def test_After_request_for_cards_in_deck_Number_appear(self):
+        self.director.parse(self.nick2, "Hoeveel wagons staan er nog op het wachtspoor?")
+        self.assertTrue(self.output.match(["Op het wachtspoor staan nog 40 wagons gereed om te verwerken."]))
+
     def test_After_request_for_trains_Trains_appear(self):
         self.director.parse(self.nick2, "Hoe staan onze treinen er voor?")
         self.assertTrue(self.output.match(["Trein Rood heeft nog geen enkele wagon."]))

@@ -42,6 +42,7 @@ class ShuntingDirector():
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*hints.*\?$", self._showHints),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*zijspoor.*\?$", self._showExtraLocomotives),
+            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*wachtspoor.*\?$", self._showWaitingTrack),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*treinen.*\?$", self._showTrains),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*regels.*\?$", self._showRules)]
 
@@ -307,6 +308,7 @@ class ShuntingDirector():
             "- Welke treinen hebben we nu?",
             "- Hoeveel hints zijn er nog beschikbaar?",
             "- Hoeveel foute wagons kunnen we nog kwijt op het zijspoor?",
+            "- Hoeveel wagons staan er eigenlijk nog op het wachtspoor?",
             "- Kun je de spelregels nog een keer precies vertellen?",
             "- Sorry hoor, maar ik stop met dit spel!",
             "Ook deze vragen mag je korter formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
@@ -344,6 +346,12 @@ class ShuntingDirector():
             self._tellExtraLocomotives(game)
         else:
             self._output(["Initieel is er plek voor 2 foute wagons op het zijspoor. Bij de derde foute wagon raakt het heuvelspoor geblokeerd en is het spel voorbij. Maar op dit moment is het spel nog niet begonnen."], dict)
+
+    def _showWaitingTrack(self, game, nick, dict):
+        if game.isOn():
+            self._tellWaitingTrack(game)
+        else:
+            self._output(["Initieel staan er 50 wagons op het wachtspoor. Maar als het spel begint worden de opstelterreinen van de spelers nog gevuld met elk 5 wagons."], dict)
 
     def _removeGame(self, game):
         for player in game.getPlayers():
@@ -397,6 +405,15 @@ class ShuntingDirector():
             self._output(["Er is geen plek meer op het zijspoor om foute wagons op te vangen."])
         else:
             self._output(["Het zijspoor was al vol. De laatste foute wagon blokkeert nu het heuvelspoor. Het spel is afgelopen!"])
+
+    def _tellWaitingTrack(self, game):
+        number = game.getNumberOfCardsInDeck()
+        if number > 1:
+            self._output(["Op het wachtspoor staan nog %i wagons gereed om te verwerken." % number])
+        elif number == 1:
+            self._output(["Op het wachtspoor staat nog maar 1 wagon gereed om te verwerken."])
+        else:
+            self._output(["Het wachtspoor is leeg. Er zijn geen nieuwe wagons meer. We spelen de laatste ronde."])
 
     def _tellHints(self, game):
         if game.getHintsLeft() > 1:
