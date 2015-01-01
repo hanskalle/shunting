@@ -250,9 +250,10 @@ class HanabiGame:
 
     def _getAndRemoveCardFromHandRepleting(self, index):
         card = self._hands[self._activePlayer][index-1]
+        del(self._hands[self._activePlayer][index-1])
         if not self.isLastRound():
             newCard = self._getCardFromDeck()
-            self._hands[self._activePlayer][index-1] = newCard
+            self._hands[self._activePlayer].insert(index-1, newCard)
         else:
             self._discardHand()
         return card
