@@ -62,10 +62,20 @@ class ShuntingDirector():
                 command.function(game, nick, dict)
                 break
 
+    def prune(self, activeNicks):
+        for game in self._games:
+            for player in game.getPlayers():
+                if not player in activeNicks:
+                    self.quit(player)
+
     def quit(self, nick):
         game = self._getGame(nick)
-        self._output(["Helaas, %s is er vandoor. Ik tel het maar als stopper. Bij terugkeer kan wel doorgespeeld worden." % nick])
-        self._stopGame(game, nick, {})
+        self._output(["Helaas, %s is er vandoor. Ik tel het maar als stopper." % nick])
+        dict = {"nick": nick}
+        if game.isSettingUp():
+            self._leaveGame(game, nick, dict)
+        else:
+            self._stopGame(game, nick, dict)
 
     def _getGame(self, nick):
         gameFound = None
@@ -267,14 +277,16 @@ class ShuntingDirector():
         stoppingPlayers = players & self._stoppers
         lastPlayers = players - self._stoppers
         if len(lastPlayers) == 0:
+            self._output(["OK, iedereen wil het spelletje stoppen. Jammer, maar helaas..."])
+            self._tellGameOver(game)
             self._removeGame(game)
-            self._output(["OK, iedereen wil het spelletje stoppen. Jammer, maar helaas: Game Over!"])
         else:
             dict["stoppingPlayers"] = self._getNamelist(stoppingPlayers)
             dict["lastPlayers"] = self._getNamelist(lastPlayers)
             self._output(["De spelers die het spel willen stoppen: %(stoppingPlayers)s",
                         "Om het spel daadwerkelijk te beëindigen, moeten ook de overigen aangeven dat ze willen stoppen.",
-                        "Dat zijn dus: %(lastPlayers)s."], dict)
+                        "Dat zijn dus: %(lastPlayers)s.",
+                        "Zolang nog niet iedereen gestopt is, kunnen de anderen besluiten het spel toch af te maken door weer gewoon mee te spelen."], dict)
 
     def _showStartingInstructions(self, game, nick, dict):
         self._output([

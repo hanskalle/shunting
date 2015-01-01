@@ -36,7 +36,7 @@ def onPart(word, word_eol, userdata):
         context = hexchat.find_context()
         activeUsers = context.get_list('users')
         activeNicks = [user.nick for user in activeUsers]
-        gameDirector.quit(word[0])
+        activeNicks = gameDirector.prune(activeNicks)
         return hexchat.EAT_NONE
     except Exception as e:
         dict = {
@@ -49,6 +49,7 @@ def onPart(word, word_eol, userdata):
 
 hexchat.hook_print('Channel Message', onMessage)
 hexchat.hook_print('Part', onPart)
+hexchat.hook_print('Quit', onPart)
 
 hexchat.prnt(__module_name__ + ' version ' + __module_version__ + ' loaded.')
 hexchat.prnt(__module_description__)

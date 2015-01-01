@@ -43,7 +43,7 @@ class Director_with_no_games_running(unittest.TestCase):
     def test_After_parsing_Laten_we_shunting_spelen_How_to_join_message_appear(self):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.assertTrue(self.output.match([".*speel mee"]))
-
+        
 class One_player_game_in_setup(unittest.TestCase):
     def setUp(self):
         self.nick1 = "SomeOne"
@@ -63,6 +63,18 @@ class One_player_game_in_setup(unittest.TestCase):
     def test_After_parsing_Nick1_joins_nick1_Nick1_is_not_added_again(self):
         self.director.parse(self.nick1, "Ik doe mee met %s!" % self.nick1)
         self.assertEqual(self.director._getGame(self.nick1).getNumberOfPlayers(), 1)
+
+    def test_After_pruning_with_empty_list_Game_is_ended(self):
+        self.director.prune([])
+        self.assertTrue(self.output.match(["OK, dan beëindigen we het spel."]))
+
+    def test_After_pruning_with_list_with_just_nick2_Game_is_ended(self):
+        self.director.prune([self.nick2])
+        self.assertTrue(self.output.match(["OK, dan beëindigen we het spel."]))
+
+    def test_After_pruning_with_list_with_just_nick1_and_nick2_Game_is_not_ended(self):
+        self.director.prune([self.nick2, self.nick1])
+        self.assertFalse(self.output.match(["OK, dan beëindigen we het spel."]))
 
 class Two_player_game_in_setup(unittest.TestCase):
     def setUp(self):
@@ -252,6 +264,14 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick2, "Ik ga ook stoppen.")
         self.assertTrue(self.output.match(["OK, iedereen wil het spelletje stoppen"]))
         self.assertEquals(self.director._getGame(self.nick1), None)
+
+    def test_After_pruning_with_empty_list_Game_is_ended(self):
+        self.director.prune([])
+        self.assertTrue(self.output.match(["OK, iedereen wil het spelletje stoppen"]))
+
+    def test_After_pruning_with_empty_list_Score_appears(self):
+        self.director.prune([])
+        self.assertTrue(self.output.match(["Jullie hebben in totaal [1-9]?[0-9] wagons correct opgesteld."]))
 
 class MemoryStreamer():
     def __init__(self):
