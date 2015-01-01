@@ -73,7 +73,7 @@ class Just_started_2_player_game(unittest.TestCase):
         self.game.start()
 
     def test_Cannot_setup_anything_anymore(self):
-        self.assertRaises(Exception,  self.game._setupTrainsForTest,  ["R1"])
+        self.assertRaises(Exception,  self.game._setupFireworksForTest,  ["R1"])
         self.assertRaises(Exception,  self.game._setupHandForTest,  ["R1"])
         self.assertRaises(Exception,  self.game._setupDeckForTest,  ["R1"])
 
@@ -247,7 +247,7 @@ class Game_with_a_perfect_setup_on_table_hand_and_deck(unittest.TestCase):
         self.player2 = "David"
         self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
-        self.game._setupTrainsForTest(["O1","G1","G2","B1","B2","B3"])
+        self.game._setupFireworksForTest(["O1","G1","G2","B1","B2","B3"])
         self.game._setupHandForTest(self.player1, ["R1","O2","G3","B4","B5"])
         self.game._setupHandForTest(self.player2, ["R2","O3","G4","R3","R4"])
         self.game._setupDeckForTest(["R5", "O4", "O5", "G4", "G5", "P1",  "P2", "P3",  "P4",  "P5"]) 
@@ -278,8 +278,8 @@ class Game_with_a_perfect_setup_on_table_hand_and_deck(unittest.TestCase):
     def test_Hinting_player2_with_O_should_result_in_FTFFF(self):
         self.assertEqual(self.game.hint(self.player2, "O"), [False, True, False, False, False])
 
-    def test_Train_length_of_B_is_3(self):
-        self.assertEqual(self.game.getTrainLength("B"), 3)
+    def test_Firework_length_of_B_is_3(self):
+        self.assertEqual(self.game.getFireworkLength("B"), 3)
 
     def test_After_player1_playing_his_first_card_five_times_and_player2_just_discarding_Score_is_11(self):
         for i in range(5):
@@ -287,7 +287,7 @@ class Game_with_a_perfect_setup_on_table_hand_and_deck(unittest.TestCase):
             self.game.discard(1)
         self.assertEqual(self.game.getScore(), 11)
 
-    def test_After_Hinting_2_times_and_completing_a_train_Hints_should_be_7(self):
+    def test_After_Hinting_2_times_and_completing_a_firework_Hints_should_be_7(self):
         for i in range(2):
             self.game.play(4+i)
             self.game.hint(self.player1,  "B")

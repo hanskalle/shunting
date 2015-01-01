@@ -498,7 +498,7 @@ class ShuntingDirector():
         if colors is None:
             colors = game.COLORS        
         for color in colors:
-            length = game.getTrainLength(color)
+            length = game.getFireworkLength(color)
             dict = {
                 "color": self._getPropertyDescription(color),
                 "length": length}

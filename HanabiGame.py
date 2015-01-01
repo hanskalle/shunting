@@ -20,7 +20,7 @@ class HanabiGame:
         self._thunderstorms = self.MAX_THUNDERSTORMS
         self._initDeck()
         self._initDiscardPile()
-        self._initTrains()
+        self._initFireworks()
         self._initPlayers()
         self.addPlayer(owner)
 
@@ -146,33 +146,33 @@ class HanabiGame:
         for index in order:
             self._hands[player].append(oldHand[index-1])
 
-    def _initTrains(self):
-        self._trains = {}
+    def _initFireworks(self):
+        self._Fireworks = {}
         for color in self.COLORS:
-            self._trains[color] = []
+            self._Fireworks[color] = []
 
-    def getTrainLength(self, color):
-        return len(self._trains[color])
+    def getFireworkLength(self, color):
+        return len(self._Fireworks[color])
 
-    def _canBeAddedToTrain(self, card):
+    def _canBeAddedToFirework(self, card):
         color = self.getCardColor(card)
         number = self._getCardNumber(card)
-        return self.getTrainLength(color) == number - 1
+        return self.getFireworkLength(color) == number - 1
 
-    def _addToTrain(self, card):
-        if not self._canBeAddedToTrain(card):
-           raise Exception("Card cannot be added to a train.")
+    def _addToFirework(self, card):
+        if not self._canBeAddedToFirework(card):
+           raise Exception("Card cannot be added to a firework.")
         color = self.getCardColor(card)
-        self._trains[color].append(card)
-        if self.getTrainLength(color) == 5:
+        self._Fireworks[color].append(card)
+        if self.getFireworkLength(color) == 5:
             self._increaseHints()
 
-    def _setupTrainsForTest(self, cards):
+    def _setupFireworksForTest(self, cards):
         if not self.isSettingUp():
-            raise Exception("Can only setup trains when in setup phase.")
+            raise Exception("Can only setup fireworks when in setup phase.")
         for card in cards:
             self._deck.remove(card)
-            self._addToTrain(card)
+            self._addToFirework(card)
 
     def getThunderstormsLeft(self):
         return self._thunderstorms
@@ -263,8 +263,8 @@ class HanabiGame:
         if index > len(self._hands[self._activePlayer]):
             raise Exception("You cannot play a card you do not have.")
         card = self._getAndRemoveCardFromHandRepleting(index)
-        if self._canBeAddedToTrain(card):
-            self._addToTrain(card)
+        if self._canBeAddedToFirework(card):
+            self._addToFirework(card)
             if self.isComplete():
                 self._setGameOver()
             else:
@@ -315,5 +315,5 @@ class HanabiGame:
     def getScore(self):
         score = 0
         for color in self.COLORS:
-            score += self.getTrainLength(color)
+            score += self.getFireworkLength(color)
         return score
