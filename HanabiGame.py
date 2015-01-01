@@ -1,22 +1,23 @@
-__module_name__ = "ShuntingGame"
+__module_name__ = "HanabiGame"
 __module_version__ = "1.0"
-__module_description__ = "Shunting game voor Kijfhoek."
+__module_description__ = "Hanabi Game."
 
-class ShuntingGame:
+class HanabiGame:
     SETUP = 1
     ON = 2
     OVER = 3
     
     COLORS = "ROGBP"
     MAX_HINTS = 8
-    MAX_EXTRALOCOMOTIVES = 3
+    MAX_THUNDERSTORMS = 3
     MIN_PLAYERS = 2
+    MAX_PLAYERS = 5
     MAX_SCORE = len(COLORS) * 5
     
     def __init__(self, owner):
-        self._state = ShuntingGame.SETUP
-        self._hints = ShuntingGame.MAX_HINTS
-        self._extraLocomotives = ShuntingGame.MAX_EXTRALOCOMOTIVES
+        self._state = self.SETUP
+        self._hints = self.MAX_HINTS
+        self._thunderstorms = self.MAX_THUNDERSTORMS
         self._initDeck()
         self._initDiscardPile()
         self._initTrains()
@@ -59,7 +60,7 @@ class ShuntingGame:
 
     def _dealCards(self):
         for player in self._players:
-            while len(self._hands[player]) < self._getMaxHandCards():
+            while len(self._hands[player]) < self.getMaxHandCards():
                 newCard = self._getCardFromDeck()
                 self._hands[player].append(newCard)
 
@@ -76,7 +77,7 @@ class ShuntingGame:
             raise Exception("Game only accepts extra players at setup.")
         if newPlayer in self.getPlayers():
             raise Exception("You cannot add a player twice.")
-        if len(self._players) == 5:
+        if len(self._players) == self.MAX_PLAYERS:
             raise Exception("The game has a maximum of 5 players.")
         self._players.append(newPlayer)
         self._hands[newPlayer] = []
@@ -106,6 +107,12 @@ class ShuntingGame:
     def getHandCards(self, player):
         return self._hands[player]
         
+    def getMaxHandCards(self):
+        if self.getNumberOfPlayers() <= 3:
+            return 5
+        else:
+            return 4
+
     def getNumberOfHandCards(self, player=None):
         if player is None:
             player = self._activePlayer
@@ -167,12 +174,12 @@ class ShuntingGame:
             self._deck.remove(card)
             self._addToTrain(card)
 
-    def getExtraLocomotivesLeft(self):
-        return self._extraLocomotives
+    def getThunderstormsLeft(self):
+        return self._thunderstorms
         
-    def _decreaseExtraLocomotives(self):
-        if self._extraLocomotives > 0:
-            self._extraLocomotives -= 1
+    def _decreaseThunderstorms(self):
+        if self._thunderstorms > 0:
+            self._thunderstorms -= 1
 
     def getHintsLeft(self):
         return self._hints
@@ -182,42 +189,36 @@ class ShuntingGame:
             self._hints -= 1
 
     def _increaseHints(self):
-        if self._hints < ShuntingGame.MAX_HINTS:
+        if self._hints < self.MAX_HINTS:
             self._hints += 1
-
-    def _getMaxHandCards(self):
-        if self.getNumberOfPlayers() <= 3:
-            return 5
-        else:
-            return 4
 
     def getState(self):
         return self._state
 
     def isSettingUp(self):
-        return self._state == ShuntingGame.SETUP
+        return self._state == self.SETUP
 
     def isOn(self):
-        return self._state == ShuntingGame.ON
+        return self._state == self.ON
 
     def isOver(self):
-        return self._state == ShuntingGame.OVER
+        return self._state == self.OVER
 
     def canStart(self):
         if not self.isSettingUp():
             return False
-        if self.getNumberOfPlayers() < ShuntingGame.MIN_PLAYERS:
+        if self.getNumberOfPlayers() < self.MIN_PLAYERS:
             return False
         return True
 
     def isComplete(self):
-        return self.getScore() == ShuntingGame.MAX_SCORE
+        return self.getScore() == self.MAX_SCORE
 
     def start(self):
         if not self.canStart():
             raise Exception("Game cannot start.")
         self._dealCards()
-        self._state = ShuntingGame.ON
+        self._state = self.ON
         self._activePlayer = self._players[0]
 
     def isLastRound(self):
@@ -229,7 +230,7 @@ class ShuntingGame:
         self._activateNextPlayer()
 
     def _setGameOver(self):
-        self._state = ShuntingGame.OVER
+        self._state = self.OVER
 
     def discard(self, index):
         if not self.isOn():
@@ -270,8 +271,8 @@ class ShuntingGame:
                 self._nextTurn()
             return True
         else:
-            self._decreaseExtraLocomotives()
-            if self.getExtraLocomotivesLeft() > 0:
+            self._decreaseThunderstorms()
+            if self.getThunderstormsLeft() > 0:
                 self._nextTurn()
             else:
                 self._setGameOver()
@@ -313,6 +314,6 @@ class ShuntingGame:
 
     def getScore(self):
         score = 0
-        for color in ShuntingGame.COLORS:
+        for color in self.COLORS:
             score += self.getTrainLength(color)
         return score

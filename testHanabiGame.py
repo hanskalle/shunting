@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
 import unittest
-from ShuntingGame import ShuntingGame
+from HanabiGame import HanabiGame
 
 class New_game(unittest.TestCase):
     def setUp(self):
         self.owner = "Hans"
-        self.game = ShuntingGame(self.owner)
+        self.game = HanabiGame(self.owner)
 
     def test_The_owner_is_a_player_also(self):
         self.assertTrue(self.owner in self.game.getPlayers())
@@ -37,7 +37,7 @@ class Five_player_game_in_setup(unittest.TestCase):
         self.player3 = "Mattanja"
         self.player4 = "Arjan"
         self.player5 = "Joshua"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game.addPlayer(self.player3)
         self.game.addPlayer(self.player4)
@@ -68,7 +68,7 @@ class Just_started_2_player_game(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game.start()
 
@@ -91,8 +91,8 @@ class Just_started_2_player_game(unittest.TestCase):
         self.assertEqual(self.game.getNumberOfHandCards(self.player1), 5)
         self.assertEqual(self.game.getNumberOfHandCards(self.player2), 5)
 
-    def test_There_are_3_ExtraLocomotives_left(self):
-        self.assertEqual(self.game.getExtraLocomotivesLeft(), 3);
+    def test_There_are_3_Thunderstorms_left(self):
+        self.assertEqual(self.game.getThunderstormsLeft(), 3);
 
     def test_There_are_8_hints_left(self):
         self.assertEqual(self.game.getHintsLeft(), 8);
@@ -164,7 +164,7 @@ class Just_started_3_player_game(unittest.TestCase):
         self.player1 = "Hans"
         self.player2 = "David"
         self.player3 = "Mattanja"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game.addPlayer(self.player3)
         self.game.start()
@@ -179,7 +179,7 @@ class Just_started_4_player_game(unittest.TestCase):
         self.player2 = "David"
         self.player3 = "Mattanja"
         self.player4 = "Arjan"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game.addPlayer(self.player3)
         self.game.addPlayer(self.player4)
@@ -196,7 +196,7 @@ class Just_started_5_player_game(unittest.TestCase):
         self.player3 = "Mattanja"
         self.player4 = "Arjan"
         self.player5 = "Joshua"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game.addPlayer(self.player3)
         self.game.addPlayer(self.player4)
@@ -211,10 +211,10 @@ class Two_just_started_2_player_games(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
-        self.game1 = ShuntingGame(self.player1)
+        self.game1 = HanabiGame(self.player1)
         self.game1.addPlayer(self.player2)
         self.game1.start()
-        self.game2 = ShuntingGame(self.player1)
+        self.game2 = HanabiGame(self.player1)
         self.game2.addPlayer(self.player2)
         self.game2.start()
 
@@ -225,7 +225,7 @@ class Game_with_all_wrong_cards_on_top_of_the_deck(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game._setupDeckForTest(["R5", "O5", "G5", "B5", "P5", "R4", "O4", "G4", "B4", "P4"]) 
         self.game.start()
@@ -245,7 +245,7 @@ class Game_with_a_perfect_setup_on_table_hand_and_deck(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"
         self.player2 = "David"
-        self.game = ShuntingGame(self.player1)
+        self.game = HanabiGame(self.player1)
         self.game.addPlayer(self.player2)
         self.game._setupTrainsForTest(["O1","G1","G2","B1","B2","B3"])
         self.game._setupHandForTest(self.player1, ["R1","O2","G3","B4","B5"])
@@ -293,9 +293,9 @@ class Game_with_a_perfect_setup_on_table_hand_and_deck(unittest.TestCase):
             self.game.hint(self.player1,  "B")
         self.assertEqual(self.game.getHintsLeft(), 7)
         
-    def test_After_playing_a_wrong_card_ExtraLocomotives_decreases_by_1(self):
+    def test_After_playing_a_wrong_card_Thunderstorms_decreases_by_1(self):
         self.game.play(5)
-        self.assertEqual(self.game.getExtraLocomotivesLeft(), 2)
+        self.assertEqual(self.game.getThunderstormsLeft(), 2)
         
     def test_After_discards_a_card_with_8_hints_Hints_is_not_increased(self):
         self.game.discard(1)

@@ -4,7 +4,7 @@ __module_name__ = "ShuntingDirector"
 __module_version__ = "1.2"
 __module_description__ = "Shunting game director voor Kijfhoek."
 
-from ShuntingGame import ShuntingGame
+from HanabiGame import HanabiGame
 
 class ShuntingDirector():
     NAME = "Kijfhoek"
@@ -29,44 +29,40 @@ class ShuntingDirector():
             _Command(None, False, ".*regels( .*)? " + self.NAME.lower() + ".*\?$", self._showRules),
             _Command(None, False, ".*" + self.NAME.lower(), self._showStartingInstructions),
             _Command(None, False, ".*(doe|speel) (.* )?mee[, ](.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
-            _Command(ShuntingGame.SETUP, False, ".*we (.* )?beginnen(.*[^?])?$", self._startGame),
-            _Command(ShuntingGame.SETUP, False, ".*stop(.*[^?])?$", self._leaveGame),
-            _Command(ShuntingGame.ON, True, ".*(dump|verwijder)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?[\.\!]?$", self._discard),
-            _Command(ShuntingGame.ON, True, ".*(koppel|heuvel)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?( aan)?( [^1-5]*)?[\.\!]?$", self._play),
-            _Command(ShuntingGame.ON, True, ".*hint (.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5]) (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
-            _Command(ShuntingGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
-            _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
-            _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])", self._hint),
-            _Command(ShuntingGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
-            _Command(ShuntingGame.ON, [True, False], ".*(orden|(her|rang)?schik) (.* )?(?P<order>[1-5]{1,5}\.{0,4})( .*)?", self._reorder),
-            _Command(ShuntingGame.ON, [True, False], ".*stop(.*[^?])?$", self._stopGame),
-            _Command(ShuntingGame.ON, [True, False], ".*opstelterrein.*\?$", self._showYards),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?" + self.NAME.lower() + " spelen.*[^?]$", self._stillPlayingAnotherGame),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*hints.*\?$", self._showHints),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*zijspoor.*\?$", self._showExtraLocomotives),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*wachtspoor.*\?$", self._showWaitingTrack),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*treinen.*\?$", self._showTrains),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*kennis.*\?$", self._tellKnowledge),
-            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*regels.*\?$", self._showRules)]
+            _Command(HanabiGame.SETUP, False, ".*we (.* )?beginnen(.*[^?])?$", self._startGame),
+            _Command(HanabiGame.SETUP, False, ".*stop(.*[^?])?$", self._leaveGame),
+            _Command(HanabiGame.ON, True, ".*(dump|verwijder)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?[\.\!]?$", self._discard),
+            _Command(HanabiGame.ON, True, ".*(koppel|heuvel)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?( aan)?( [^1-5]*)?[\.\!]?$", self._play),
+            _Command(HanabiGame.ON, True, ".*hint (.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5]) (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
+            _Command(HanabiGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
+            _Command(HanabiGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
+            _Command(HanabiGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])", self._hint),
+            _Command(HanabiGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
+            _Command(HanabiGame.ON, [True, False], ".*(orden|(her|rang)?schik) (.* )?(?P<order>[1-5]{1,5}\.{0,4})( .*)?", self._reorder),
+            _Command(HanabiGame.ON, [True, False], ".*stop(.*[^?])?$", self._stopGame),
+            _Command(HanabiGame.ON, [True, False], ".*opstelterrein.*\?$", self._showYards),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], "(.* )?" + self.NAME.lower() + " spelen.*[^?]$", self._stillPlayingAnotherGame),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*hints.*\?$", self._showHints),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*zijspoor.*\?$", self._showSiding),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*wachtspoor.*\?$", self._showWaitingTrack),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*treinen.*\?$", self._showTrains),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*kennis.*\?$", self._tellKnowledge),
+            _Command([HanabiGame.SETUP, HanabiGame.ON], [True, False], ".*regels.*\?$", self._showRules)]
 
     def parse(self, nick, line):
         line = line.lower()
         game = self._getGame(nick)
-        if game:
-            gameState = game.getState()
-            isActive = (nick == game.getActivePlayer())
-        else:
-            gameState = None
-            isActive = False
+        gameState = self._getGameState(game)
+        isActivePlayer = self._isActivePlayer(game, nick)
         for command in self._commands:
-            match = command.match(gameState, isActive, line)
+            match = command.match(gameState, isActivePlayer , line)
             if match:
                 dict = match.groupdict()
                 dict["nick"] = nick
                 command.function(game, nick, dict)
                 break
-
+                
     def prune(self, activeNicks):
         for game in self._games:
             for player in game.getPlayers():
@@ -82,6 +78,18 @@ class ShuntingDirector():
         else:
             self._stopGame(game, nick, dict)
 
+    def _getGameState(self, game):
+        if game:
+            return game.getState()
+        else:
+            return None
+
+    def _isActivePlayer(self, game, nick):
+        if game:
+            return nick == game.getActivePlayer()
+        else:
+            return False
+
     def _getGame(self, nick):
         gameFound = None
         nick = nick.lower()
@@ -91,6 +99,14 @@ class ShuntingDirector():
                     gameFound = game
                     break
         return gameFound
+
+    def _getMaxLengthPlayers(self, game):
+        maxLength = 0
+        for player in game.getPlayers():
+            length = len(player)
+            if length > maxLength:
+                maxLength = length
+        return maxLength
 
     def _getNamelist(self, players):
         players = list(players)
@@ -118,7 +134,14 @@ class ShuntingDirector():
             if not index is None:
                 indicesList.append(index)
         return indicesList
-        
+
+    def _getMatchIndices(self, matches):
+        indices = []
+        for i in range(len(matches)):
+            if matches[i]:
+                indices.append(i+1)
+        return indices
+
     def _getPropertyDescription(self, property):
         if property in self.COLORMAP:
             return self.COLORMAP[property]
@@ -130,13 +153,6 @@ class ShuntingDirector():
             if nick == player.lower():
                 return player
         return nick
-
-    def _getMatchIndices(self, matches):
-        indices = []
-        for i in range(len(matches)):
-            if matches[i]:
-                indices.append(i+1)
-        return indices
 
     def _output(self, lines, dict={}):
         for line in lines:
@@ -167,18 +183,12 @@ class ShuntingDirector():
 
     def _tellKnowledge(self, game, nick, dict):
         self._output(["Kennis:"])
+        maxLength = self._getMaxLengthPlayers(game)
         for player in game.getPlayers():
-            self._output(["%s: %s" % (player.rjust(20), "  ".join(self._knowledge[player]))])
-        
-    def _nextTurn(self, game):
-        if game.isOn():
-            self._tellTurn(game)
-        else:
-            self._tellGameOver(game)
-            self._removeGame(game)
+            self._output(["%s: %s" % (player.rjust(maxLength+2), "  ".join(self._knowledge[player]))])
 
     def _createNewGame(self, game, nick, dict):
-        game = ShuntingGame(nick)
+        game = HanabiGame(nick)
         self._games.append(game)
         self._output(["Nou, %(nick)s, leuk dat je " + self.NAME + " wil spelen."], dict)
         self._tellJoinOrStart(game, dict)
@@ -221,7 +231,7 @@ class ShuntingDirector():
                 for player in game.getPlayers():
                     self._initKnowledge(game, player)
                     self._tellHandToOthers(game, player)
-                self._tellExtraLocomotives(game)
+                self._tellSiding(game)
                 self._tellHints(game)
                 self._showHelp(game, nick, dict)
                 self._tellTurn(game)
@@ -253,7 +263,7 @@ class ShuntingDirector():
             self._tellTrains(game, color)
         else:
             self._output(["Die belandt op het zijspoor omdat die aan geen enkele trein gekoppeld kan worden."], dict)
-            self._tellExtraLocomotives(game)
+            self._tellSiding(game)
         if game.isOn():
             self._tellHandToOthers(game, nick)
         self._nextTurn(game)
@@ -287,19 +297,26 @@ class ShuntingDirector():
         else:
             self._output(["Jammer %(nick)s, maar er mogen nu geen hints meer gegegeven worden. Pas na het afrangeren van een wagon mag dat weer. Probeer opnieuw."], dict)
 
+    def _nextTurn(self, game):
+        if game.isOn():
+            self._tellTurn(game)
+        else:
+            self._tellGameOver(game)
+            self._removeGame(game)
+
     def _reorder(self, game, nick, dict):
         self._stoppers.discard(nick)
-        numberOfHandCards = len(game.getHandCards(nick))
+        count = game.getMaxHandCards()
         order = dict["order"]
-        if len(order) == numberOfHandCards:
+        if len(order) == count:
             order = self._getIndicesList(order)
-        if len(order) == numberOfHandCards:
+        if len(order) == count:
             game.reorderHandCards(nick, order)
             self._reorderKnowledge(nick, order)
             self._output(["De wagons van %(nick)s zijn opnieuw gerangschikt."], dict)
             self._tellHandToOthers(game, nick)
         else:
-            dict["order"] = "54321"[-numberOfHandCards:]
+            dict["order"] = "54321"[-count:]
             self._output(["De opgegeven ordening klopt niet. Voor een omgekeerde volgorde geeft je bijvoorbeeld %(order)s op."], dict)
 
     def _stopGame(self, game, nick, dict):
@@ -328,13 +345,14 @@ class ShuntingDirector():
             "Maar je kunt ook eerst vragen om de spelregels van " + self.NAME + "."])
 
     def _showHelp(self, game, nick, dict):
+        length = game.getMaxHandCards()
         self._output([
             "In je beurt heb je drie mogelijkheden:",
             "1) Koppel wagon <index> aan. Bijvoorbeeld: Koppel wagon 2 aan. Of: Ik heuvel nu 2.",
             "2) Verwijder wagon <index>. Bijvoorbeeld: Verwijder wagon 2. Of: Ik dump graag nummer 4.",
             "3) Hint <kleur/cijfer> aan <nick>. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
             "In en buiten je beurt kun je de volgende dingen doen.",
-            "- Orden hand 35124. Hiermee verwissel je de wagons op je opstelsporen. Dat kan helpen bij het onthouden van de hints.",
+            "- Orden hand %s. Hiermee verwissel je de wagons op je opstelsporen. Dat kan helpen bij het onthouden van de hints." % "34125"[-length:],
             "- Welke treinen hebben we nu?",
             "- Hoeveel hints zijn er nog beschikbaar?",
             "- Hoeveel foute wagons kunnen we nog kwijt op het zijspoor?",
@@ -372,9 +390,9 @@ class ShuntingDirector():
         else:
             self._output(["Initieel hebben alle treinen 0 wagons. Maar op dit moment is het spel nog niet begonnen."], dict)
 
-    def _showExtraLocomotives(self, game, nick, dict):
+    def _showSiding(self, game, nick, dict):
         if game.isOn():
-            self._tellExtraLocomotives(game)
+            self._tellSiding(game)
         else:
             self._output(["Initieel is er plek voor 2 foute wagons op het zijspoor. Bij de derde foute wagon raakt het heuvelspoor geblokeerd en is het spel voorbij. Maar op dit moment is het spel nog niet begonnen."], dict)
 
@@ -436,35 +454,37 @@ class ShuntingDirector():
                 if another != nick:
                     self._privateOutput(another, "Het opstelterrein van %s doet er niet meer toe." % nick)
 
-    def _tellExtraLocomotives(self, game):
-        if game.getExtraLocomotivesLeft() > 2:
-            self._output(["Er is nog plek voor %i foute wagons op het zijspoor." % (game.getExtraLocomotivesLeft()-1)])
-        elif game.getExtraLocomotivesLeft() == 2:
+    def _tellSiding(self, game):
+        count = game.getThunderstormsLeft()-1
+        if count > 1:
+            self._output(["Er is nog plek voor %i foute wagons op het zijspoor." % count])
+        elif count == 1:
             self._output(["Er is plek voor nog maar 1 foute wagon op het zijspoor."])
-        elif game.getExtraLocomotivesLeft() == 1:
+        elif count == 0:
             self._output(["Er is geen plek meer op het zijspoor om foute wagons op te vangen."])
         else:
             self._output(["Het zijspoor was al vol. De laatste foute wagon blokkeert nu het heuvelspoor. Het spel is afgelopen!"])
 
     def _tellWaitingTrack(self, game):
-        number = game.getNumberOfCardsInDeck()
-        if number > 1:
-            self._output(["Op het wachtspoor staan nog %i wagons gereed om te verwerken." % number])
-        elif number == 1:
+        count = game.getNumberOfCardsInDeck()
+        if count > 1:
+            self._output(["Op het wachtspoor staan nog %i wagons gereed om te verwerken." % count])
+        elif count == 1:
             self._output(["Op het wachtspoor staat nog maar 1 wagon gereed om te verwerken."])
         else:
             self._output(["Het wachtspoor is leeg. Er zijn geen nieuwe wagons meer. We spelen de laatste ronde."])
 
     def _tellYards(self, game, nick):
         self._privateOutput(nick, "Zo zien de opstelterreinen er nu uit:")
+        maxLength = self._getMaxLengthPlayers(game)
         for player in game.getPlayers():
             if player != nick:
                 hand = game.getHandCards(player)
                 if len(hand) > 0:
                     hand = ",".join(hand)
-                    self._privateOutput(nick, "%s: %s" % (player.rjust(20), hand))
+                    self._privateOutput(nick, "%s: %s" % (player.rjust(maxLength+2), hand))
                 else:
-                    self._privateOutput(nick, "%s: doet er niet meer toe." % player.rjust(20))
+                    self._privateOutput(nick, "%s: doet er niet meer toe." % player.rjust(maxLength+2))
 
     def _tellHints(self, game):
         if game.getHintsLeft() > 1:
