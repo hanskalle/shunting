@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: latin-1 -*-
-
 __module_name__ = "ShuntingDirector"
+__module_version__ = "1.2"
+__module_description__ = "Shunting game director voor Kijfhoek."
 
 from ShuntingGame import ShuntingGame
 
@@ -18,6 +19,7 @@ class ShuntingDirector():
     def __init__(self, streamer):
        self._streamer = streamer
        self._games = []
+       self._knowledge = {}
        self._initCommands()
        self._stoppers = set([])
 
@@ -45,6 +47,7 @@ class ShuntingDirector():
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*zijspoor.*\?$", self._showExtraLocomotives),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*wachtspoor.*\?$", self._showWaitingTrack),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*treinen.*\?$", self._showTrains),
+            _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*kennis.*\?$", self._tellKnowledge),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*regels.*\?$", self._showRules)]
 
     def parse(self, nick, line):
@@ -93,11 +96,11 @@ class ShuntingDirector():
         players = list(players)
         namestring = ""
         if len(players) > 0:
-            namestring += players[0]
+            namestring += str(players[0])
         for player in players[1:-1]:
-            namestring += ", " + player
+            namestring += ", " + str(player)
         if len(players) > 1:
-            namestring += " en " + players[-1]
+            namestring += " en " + str(players[-1])
         return namestring
 
     def _getIndicesList(self, indicesString):
@@ -129,14 +132,10 @@ class ShuntingDirector():
         return nick
 
     def _getMatchIndices(self, matches):
-        indices = ""
+        indices = []
         for i in range(len(matches)):
             if matches[i]:
-                if indices == "":
-                    indices = str(i+1)
-                else:
-                    indices = indices.replace(" en", ",")
-                    indices = indices + " en " + str(i+1)
+                indices.append(i+1)
         return indices
 
     def _output(self, lines, dict={}):
@@ -145,7 +144,32 @@ class ShuntingDirector():
 
     def _privateOutput(self, nick, line, dict={}):
         self._streamer.privateOutput(nick, line % dict)
+        
+    def _initKnowledge(self, game, nick):
+        self._knowledge[nick] = []
+        for card in game.getHandCards(nick):
+            self._knowledge[nick].append("..")
 
+    def _reorderKnowledge(self, nick, indices):
+        original = self._knowledge[nick]
+        self._knowledge[nick] = []
+        for index in indices:
+            self._knowledge[nick].append(original[index-1])
+
+    def _setKnowledge(self, nick, indices, data):
+        for index in indices:
+            if data == "..":
+                self._knowledge[nick][index-1] = ".."
+            elif data in "12345":
+                self._knowledge[nick][index-1] = self._knowledge[nick][index-1][:1] + data
+            else:
+                self._knowledge[nick][index-1] = data + self._knowledge[nick][index-1][-1:]
+
+    def _tellKnowledge(self, game, nick, dict):
+        self._output(["Kennis:"])
+        for player in game.getPlayers():
+            self._output(["%s: %s" % (player.rjust(20), "  ".join(self._knowledge[player]))])
+        
     def _nextTurn(self, game):
         if game.isOn():
             self._tellTurn(game)
@@ -195,7 +219,8 @@ class ShuntingDirector():
                 game.start()
                 self._output(["Ik vertel de wagons op de opstelterreinen via prive-berichten, zodat je als rangeerder niet weet welke wagons er op jouw opstelterrein staan. Let dus op het aparte venster."], dict)
                 for player in game.getPlayers():
-                    self._tellHandToOthers(player, game)
+                    self._initKnowledge(game, player)
+                    self._tellHandToOthers(game, player)
                 self._tellExtraLocomotives(game)
                 self._tellHints(game)
                 self._showHelp(game, nick, dict)
@@ -210,8 +235,9 @@ class ShuntingDirector():
         self._stoppers.discard(nick)
         index = int(dict["index"])
         game.discard(index)
+        self._setKnowledge(nick, [index], "..")
         if game.isOn():
-            self._tellHandToOthers(nick, game)
+            self._tellHandToOthers(game, nick)
             self._tellHints(game)
         self._nextTurn(game)
 
@@ -221,6 +247,7 @@ class ShuntingDirector():
         card = game.getHandCards(nick)[index-1]
         dict["card"] = card
         self._output(["Wagon %(index)s van %(nick)s is een %(card)s."], dict)
+        self._setKnowledge(nick, [index], "..")
         if game.play(index):
             color = game.getCardColor(card)
             self._tellTrains(game, color)
@@ -228,7 +255,7 @@ class ShuntingDirector():
             self._output(["Die belandt op het zijspoor omdat die aan geen enkele trein gekoppeld kan worden."], dict)
             self._tellExtraLocomotives(game)
         if game.isOn():
-            self._tellHandToOthers(nick, game)
+            self._tellHandToOthers(game, nick)
         self._nextTurn(game)
 
     def _hint(self, game, nick, dict):
@@ -240,7 +267,8 @@ class ShuntingDirector():
                 if player in game.getPlayers():
                     matches = game.hint(player, hint)
                     indices = self._getMatchIndices(matches)
-                    dict["indices"] = indices
+                    self._setKnowledge(player, indices, hint)
+                    dict["indices"] = self._getNamelist(indices)
                     dict["player"] = player
                     dict["hint"] = hint
                     if len(indices) == 0:
@@ -267,8 +295,9 @@ class ShuntingDirector():
             order = self._getIndicesList(order)
         if len(order) == numberOfHandCards:
             game.reorderHandCards(nick, order)
+            self._reorderKnowledge(nick, order)
             self._output(["De wagons van %(nick)s zijn opnieuw gerangschikt."], dict)
-            self._tellHandToOthers(nick, game)
+            self._tellHandToOthers(game, nick)
         else:
             dict["order"] = "54321"[-numberOfHandCards:]
             self._output(["De opgegeven ordening klopt niet. Voor een omgekeerde volgorde geeft je bijvoorbeeld %(order)s op."], dict)
@@ -395,17 +424,17 @@ class ShuntingDirector():
             self._output(["We hebben nu het maximale aantal bereikt. We beginnen!"])
             self._startGame(game, game.getOwner(), dict)
 
-    def _tellHandToOthers(self, player, game):
-        hand = game.getHandCards(player)
+    def _tellHandToOthers(self, game, nick):
+        hand = game.getHandCards(nick)
         if len(hand) > 0:
-            hand = ",".join(hand)
+            hand = "  ".join(hand)
             for another in game.getPlayers():
-                if another != player:
-                    self._privateOutput(another, "Het opstelterrein van %s bevat de wagons: %s." % (player, hand))
+                if another != nick:
+                    self._privateOutput(another, "Het opstelterrein van %s bevat de wagons: %s." % (nick, hand))
         else:
             for another in game.getPlayers():
-                if another != player:
-                    self._privateOutput(another, "Het opstelterrein van %s doet er niet meer toe." % player)
+                if another != nick:
+                    self._privateOutput(another, "Het opstelterrein van %s doet er niet meer toe." % nick)
 
     def _tellExtraLocomotives(self, game):
         if game.getExtraLocomotivesLeft() > 2:

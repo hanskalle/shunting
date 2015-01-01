@@ -142,6 +142,18 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick1, "Verwijder wagon 1 en 3.")
         self.assertFalse(self.output.match(["De beurt is aan %s." % self.nick2]))
 
+    def test_After_setting_kennis_and_playing_card_Kennis_is_removed(self):
+        self.director._knowledge[self.nick1][0] = "B1"
+        self.director.parse(self.nick1, "Koppel 1")
+        self.director.parse(self.nick1, "Kennis?")
+        self.assertFalse(self.output.match([".*%s: B1  " % self.nick1]))
+
+    def test_After_setting_kennis_and_discarding_card_Kennis_is_removed(self):
+        self.director._knowledge[self.nick1][0] = "B1"
+        self.director.parse(self.nick1, "Verwijder 1")
+        self.director.parse(self.nick1, "Kennis?")
+        self.assertFalse(self.output.match([".*%s: B1  " % self.nick1]))
+
     def test_After_player1_says_Orden_wagons_54321_His_cards_are_secretly_told_to_player2_and_its_still_player1s_turn(self):
         self.director.parse(self.nick1, "Orden wagons 54321")
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
@@ -185,6 +197,10 @@ class Just_started_2_player_game(unittest.TestCase):
         self.assertEqual(hintCount, 1)
         self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
+
+    def test_After_requesting_kennis_Kennis_appears(self):
+        self.director.parse(self.nick1, "kennis?")
+        self.assertTrue(self.output.match(["Kennis:"]))
 
     def test_After_player1_says_Hint_Oranje_aan_David_Hints_left_become_7(self):
         self.director.parse(self.nick1, "Hint Oranje aan David")

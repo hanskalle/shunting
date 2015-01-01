@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 __module_name__ = "ShuntingBot"
-__module_version__ = "1.0"
+__module_version__ = "1.1"
 __module_description__ = "Bot waarmee Kijfhoek gespeeld kan worden. Reageert op het woord Kijfhoek."
 __author__ = "Hans Kalle"
 
