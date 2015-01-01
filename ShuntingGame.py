@@ -218,7 +218,7 @@ class ShuntingGame:
         self._state = ShuntingGame.ON
         self._activePlayer = self._players[0]
 
-    def _isLastRound(self):
+    def isLastRound(self):
         return self.getNumberOfCardsInDeck() ==0
 
     def _nextTurn(self):
@@ -247,7 +247,7 @@ class ShuntingGame:
 
     def _getAndRemoveCardFromHandRepleting(self, index):
         card = self._hands[self._activePlayer][index-1]
-        if not self._isLastRound():
+        if not self.isLastRound():
             newCard = self._getCardFromDeck()
             self._hands[self._activePlayer][index-1] = newCard
         else:

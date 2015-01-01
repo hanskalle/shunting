@@ -391,10 +391,16 @@ class ShuntingDirector():
             self._startGame(game, game.getOwner(), dict)
 
     def _tellHandToOthers(self, player, game):
-        hand = ",".join(game.getHandCards(player))
-        for another in game.getPlayers():
-            if another != player:
-                self._privateOutput(another, "Het opstelterrein van %s bevat de wagons: %s." % (player, hand))
+        hand = game.getHandCards(player)
+        if len(hand) > 0:
+            hand = ",".join(hand)
+            for another in game.getPlayers():
+                if another != player:
+                    self._privateOutput(another, "Het opstelterrein van %s bevat de wagons: %s." % (player, hand))
+        else:
+            for another in game.getPlayers():
+                if another != player:
+                    self._privateOutput(another, "Het opstelterrein van %s doet er niet meer toe." % player)
 
     def _tellExtraLocomotives(self, game):
         if game.getExtraLocomotivesLeft() > 2:
@@ -442,6 +448,8 @@ class ShuntingDirector():
 
     def _tellTurn(self, game):
         self._output(["De beurt is aan %s." % game.getActivePlayer()])
+        if game.isLastRound():
+            self._output(["Let op: dit is de laatste ronde omdat er geen wagons meer op het wachtspoor staan!"])
 
 class _Command():
     def __init__(self, gameState, isActive, regex, function):
