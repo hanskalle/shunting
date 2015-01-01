@@ -30,7 +30,7 @@ class ShuntingDirector():
             _Command(ShuntingGame.SETUP, False, ".*we (.* )?beginnen(.*[^?])?$", self._startGame),
             _Command(ShuntingGame.SETUP, False, ".*stop(.*[^?])?$", self._leaveGame),
             _Command(ShuntingGame.ON, True, ".*(dump|verwijder)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?[\.\!]?$", self._discard),
-            _Command(ShuntingGame.ON, True, ".*(koppel|heuvel)( .*)? (?P<index>[1-5])( aan)?", self._play),
+            _Command(ShuntingGame.ON, True, ".*(koppel|heuvel)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?( aan)?( [^1-5]*)?[\.\!]?$", self._play),
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5]) (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
