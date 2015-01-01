@@ -126,9 +126,9 @@ class Just_started_2_player_game(unittest.TestCase):
     def setUp(self):
         self.output = MemoryStreamer()
         self.director = ShuntingDirector(self.output)
-        self.nick1 = "hans"
+        self.nick1 = "Hans"
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
-        self.nick2 = "david"
+        self.nick2 = "David"
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
         self.director.parse(self.nick1, "We beginnen.")
 
@@ -237,7 +237,7 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick2, "Hoeveel plekken op het zijspoor hebben we nog?")
         self.assertTrue(self.output.match(["Er is nog plek voor 2 foute wagons op het zijspoor"]))
 
-    def test_After_request_for_cards_in_deck_Number_appear(self):
+    def test_After_request_for_waiting_track_Number_of_wagons_appear(self):
         self.director.parse(self.nick2, "Hoeveel wagons staan er nog op het wachtspoor?")
         self.assertTrue(self.output.match(["Op het wachtspoor staan nog 40 wagons gereed om te verwerken."]))
 
@@ -245,6 +245,13 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick2, "Hoe staan onze treinen er voor?")
         self.assertTrue(self.output.match(["Trein Rood heeft nog geen enkele wagon."]))
         self.assertTrue(self.output.match(["Trein Blauw heeft nog geen enkele wagon."]))
+
+    def test_After_request_for_yards_Yards_of_players_appear_in_private(self):
+        self.director.parse(self.nick1, "Wat staat er op de opstelterreinen?")
+        self.assertTrue(self.output.privateMatch(self.nick1, [" *%s: " % self.nick2]))
+        self.assertFalse(self.output.privateMatch(self.nick1, [" *%s: " % self.nick1]))
+        self.assertFalse(self.output.privateMatch(self.nick2, [" *%s: " % self.nick1]))
+        self.assertFalse(self.output.privateMatch(self.nick2, [" *%s: " % self.nick2]))
 
     def test_After_playing_lots_of_wrong_cards_Game_is_over_and_score_appears(self):
         for i in range(5):

@@ -38,6 +38,7 @@ class ShuntingDirector():
             _Command(ShuntingGame.ON, [True, False], "(help|hulp|om hulp)(!+|.)$", self._showHelp),
             _Command(ShuntingGame.ON, [True, False], ".*(orden|(her|rang)?schik) (.* )?(?P<order>[1-5]{1,5}\.{0,4})( .*)?", self._reorder),
             _Command(ShuntingGame.ON, [True, False], ".*stop(.*[^?])?$", self._stopGame),
+            _Command(ShuntingGame.ON, [True, False], ".*opstelterrein.*\?$", self._showYards),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], "(.* )?" + self.NAME.lower() + " spelen.*[^?]$", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*ik (.* )?mee ((.+|met) )?(?P<owner>[A-Za-z_\-0-9]+)", self._stillPlayingAnotherGame),
             _Command([ShuntingGame.SETUP, ShuntingGame.ON], [True, False], ".*hints.*\?$", self._showHints),
@@ -353,6 +354,9 @@ class ShuntingDirector():
         else:
             self._output(["Initieel staan er 50 wagons op het wachtspoor. Maar als het spel begint worden de opstelterreinen van de spelers nog gevuld met elk 5 wagons."], dict)
 
+    def _showYards(self, game, nick, dict):
+        self._tellYards(game, nick)
+
     def _removeGame(self, game):
         for player in game.getPlayers():
             self._stoppers.discard(player)
@@ -420,6 +424,17 @@ class ShuntingDirector():
             self._output(["Op het wachtspoor staat nog maar 1 wagon gereed om te verwerken."])
         else:
             self._output(["Het wachtspoor is leeg. Er zijn geen nieuwe wagons meer. We spelen de laatste ronde."])
+
+    def _tellYards(self, game, nick):
+        self._privateOutput(nick, "Zo zien de opstelterreinen er nu uit:")
+        for player in game.getPlayers():
+            if player != nick:
+                hand = game.getHandCards(player)
+                if len(hand) > 0:
+                    hand = ",".join(hand)
+                    self._privateOutput(nick, "%s: %s" % (player.rjust(20), hand))
+                else:
+                    self._privateOutput(nick, "%s: doet er niet meer toe." % player.rjust(20))
 
     def _tellHints(self, game):
         if game.getHintsLeft() > 1:
