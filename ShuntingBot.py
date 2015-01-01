@@ -6,6 +6,7 @@ __module_description__ = "Bot waarmee Kijfhoek gespeeld kan worden. Reageert op 
 __author__ = "Hans Kalle"
 
 import hexchat
+from HanabiGame import HanabiGame
 from ShuntingDirector import ShuntingDirector
 
 class HexchatStreamer():

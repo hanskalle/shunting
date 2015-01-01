@@ -1,5 +1,5 @@
 __module_name__ = "HanabiGame"
-__module_version__ = "1.0"
+__module_version__ = "1.1"
 __module_description__ = "Hanabi Game."
 
 class HanabiGame:
