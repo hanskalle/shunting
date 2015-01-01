@@ -132,11 +132,15 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
         self.director.parse(self.nick1, "We beginnen.")
 
-    def test_After_player1_says_Ik_leg_1_af_New_cards_are_privatly_told_to_player2_only_and_its_player2s_turn(self):
-        self.director.parse(self.nick1, "Rangeer wagon 3 weg.")
+    def test_After_player1_says_Verwijder_wagon_3_New_cards_are_privatly_told_to_player2_only_and_its_player2s_turn(self):
+        self.director.parse(self.nick1, "Verwijder wagon 3.")
         self.assertFalse(self.output.privateMatch(self.nick1, ["Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
+
+    def test_After_player1_says_verwijder_1_en_3_Command_is_discarded(self):
+        self.director.parse(self.nick1, "Verwijder wagon 1 en 3.")
+        self.assertFalse(self.output.match(["De beurt is aan %s." % self.nick2]))
 
     def test_After_player1_says_Orden_wagons_54321_His_cards_are_secretly_told_to_player2_and_its_still_player1s_turn(self):
         self.director.parse(self.nick1, "Orden wagons 54321")

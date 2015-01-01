@@ -29,8 +29,8 @@ class ShuntingDirector():
             _Command(None, False, ".*(doe|speel) (.* )?mee[, ](.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
             _Command(ShuntingGame.SETUP, False, ".*we (.* )?beginnen(.*[^?])?$", self._startGame),
             _Command(ShuntingGame.SETUP, False, ".*stop(.*[^?])?$", self._leaveGame),
-            _Command(ShuntingGame.ON, True, ".*(dump|rangeer)( .*)? (?P<index>[1-5])( .*)?( (af|weg))?", self._discard),
-            _Command(ShuntingGame.ON, True, ".*(heuvel|koppel)( .*)? (?P<index>[1-5])( aan)?", self._play),
+            _Command(ShuntingGame.ON, True, ".*(dump|verwijder)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?[\.\!]?$", self._discard),
+            _Command(ShuntingGame.ON, True, ".*(koppel|heuvel)( .*)? (?P<index>[1-5])( aan)?", self._play),
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5]) (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(ShuntingGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
@@ -301,8 +301,8 @@ class ShuntingDirector():
     def _showHelp(self, game, nick, dict):
         self._output([
             "In je beurt heb je drie mogelijkheden:",
-            "1) Heuvel wagon <index>. Bijvoorbeeld: Heuvel wagon 2. Of: Ik heuvel 2.",
-            "2) Rangeer wagon <index> af. Bijvoorbeeld: Rangeer wagon 2 af. Of: Ik rangeer 4 weg.",
+            "1) Koppel wagon <index> aan. Bijvoorbeeld: Koppel wagon 2 aan. Of: Ik heuvel nu 2.",
+            "2) Verwijder wagon <index>. Bijvoorbeeld: Verwijder wagon 2. Of: Ik dump graag nummer 4.",
             "3) Hint <kleur/cijfer> aan <nick>. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
             "In en buiten je beurt kun je de volgende dingen doen.",
             "- Orden hand 35124. Hiermee verwissel je de wagons op je opstelsporen. Dat kan helpen bij het onthouden van de hints.",
@@ -310,6 +310,7 @@ class ShuntingDirector():
             "- Hoeveel hints zijn er nog beschikbaar?",
             "- Hoeveel foute wagons kunnen we nog kwijt op het zijspoor?",
             "- Hoeveel wagons staan er eigenlijk nog op het wachtspoor?",
+            "- Welke wagons staan op de opstelterreinen van mijn medespelers?",
             "- Kun je de spelregels nog een keer precies vertellen?",
             "- Sorry hoor, maar ik stop met dit spel!",
             "Ook deze vragen mag je korter formuleren, hoor. En als je ze vergeten bent, roep dan maar om hulp."])
