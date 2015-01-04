@@ -31,8 +31,8 @@ class ShuntingDirector():
             _Command(None, False, ".*(doe|speel) (.* )?mee[, ](.* )?(?P<owner>[A-Za-z_\-0-9]+)", self._joinGame),
             _Command(HanabiGame.SETUP, False, ".*we (.* )?beginnen(.*[^?])?$", self._startGame),
             _Command(HanabiGame.SETUP, False, ".*stop(.*[^?])?$", self._leaveGame),
-            _Command(HanabiGame.ON, True, ".*(dump|verwijder)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?[\.\!]?$", self._discard),
-            _Command(HanabiGame.ON, True, ".*(koppel|heuvel)( [^1-5]*)? (?P<index>[1-5])( [^1-5]*)?( aan)?( [^1-5]*)?[\.\!]?$", self._play),
+            _Command(HanabiGame.ON, True, ".*(dump|verwijder)( [^1-5]*)? (?P<index>[1-5])(ste|de|e)?( [^1-5]*)?[\.\!]?$", self._discard),
+            _Command(HanabiGame.ON, True, ".*(koppel|heuvel)( [^1-5]*)? (?P<index>[1-5])(ste|de|e)?( [^1-5]*)?( aan)?( [^1-5]*)?[\.\!]?$", self._play),
             _Command(HanabiGame.ON, True, ".*hint (.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5]) (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(HanabiGame.ON, True, ".*hint (.+ )?(kleur )?(.+ )?(?P<hint>[rogbp])(ood|ranje|roen|lauw|aars)? (aan|voor) (speler )?(?P<player>[A-Za-z_\-0-9]+)", self._hint),
             _Command(HanabiGame.ON, True, ".*hint (speler )?(?P<player>[A-Za-z_\-0-9]+)(: ?| )?(.+ )?((cijfer|getal) )?(.+ )?(?P<hint>[1-5])", self._hint),
@@ -261,7 +261,7 @@ class ShuntingDirector():
         if game.play(index):
             color = game.getCardColor(card)
             self._tellTrains(game, color)
-            if game.getTrainLength(color) == 5:
+            if game.getFireworkLength(color) == 5:
                 self._tellHints(game)
         else:
             self._output(["Die belandt op het zijspoor omdat die aan geen enkele trein gekoppeld kan worden."], dict)
@@ -354,7 +354,7 @@ class ShuntingDirector():
             "2) Verwijder wagon <index>. Bijvoorbeeld: Verwijder wagon 2. Of: Ik dump graag nummer 4.",
             "3) Hint <kleur/cijfer> aan <nick>. Bijvoorbeeld: Hint rood aan David. Of: Hint David: 3",
             "In en buiten je beurt kun je allerlei informatie opvragen. Vraag bijvoorbeeld: Hoeveel hints zijn er nog beschikbaar?",
-            "Denk ook aan: wachtspoor, opstelterreinen, zijspoor, treinen, gedeelde kennise en spelregels.
+            "Denk ook aan: wachtspoor, opstelterreinen, zijspoor, treinen, gedeelde kennise en spelregels.",
             "Verder kun je de wagons op je opstelterrein ordenen: Herschik opstelterrein %s." % "34125"[-length:],
             "Tot slot, maar dat is een beetje flauw, kun je aangeven dat je stopt met het spel.",
             "En als je het allemaal niet meer weet, roep je maar om hulp."])
@@ -454,13 +454,13 @@ class ShuntingDirector():
     def _tellSiding(self, game):
         count = game.getThunderstormsLeft()-1
         if count > 1:
-            self._output(["Er is nog plek om %i foute wagons op het zijspoor op te vangen." % count])
+            self._output(["Het zijspoor kan nog %i foute wagons opvangen." % count])
         elif count == 1:
-            self._output(["Er is plek om nog maar 1 foute wagon op het zijspoor op te vangen."])
+            self._output(["Het zijspoor kan nog maar 1 foute wagon opvangen."])
         elif count == 0:
             self._output(["Er is geen plek meer op het zijspoor om foute wagons op te vangen. Bij de volgende foute wagon eindigt het spel!"])
         else:
-            self._output(["Het zijspoor was al vol. De laatste foute wagon blokkeert nu het heuvelspoor. Het spel is afgelopen!"])
+            self._output(["Het zijspoor was al vol. De laatste foute wagon blokkeert nu het heuvelspoor naar de treinen. Het spel is afgelopen!"])
 
     def _tellWaitingTrack(self, game):
         count = game.getNumberOfCardsInDeck()
