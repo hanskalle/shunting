@@ -132,10 +132,14 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
         self.director.parse(self.nick1, "We beginnen.")
 
-    def test_After_player1_says_Verwijder_wagon_3_New_cards_are_privatly_told_to_player2_only_and_its_player2s_turn(self):
+    def test_After_player1_says_verwijder_wagon_3_New_cards_are_privatly_told_to_player2_only_and_its_player2s_turn(self):
         self.director.parse(self.nick1, "Verwijder wagon 3.")
         self.assertFalse(self.output.privateMatch(self.nick1, ["Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
+        self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
+
+    def test_After_player1_says_verwijder_3de_Its_player2s_turn(self):
+        self.director.parse(self.nick1, "Verwijder 3de.")
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
 
     def test_After_player1_says_verwijder_1_en_3_Command_is_discarded(self):
@@ -180,7 +184,7 @@ class Just_started_2_player_game(unittest.TestCase):
     def test_After_player1_says_Heuvel_wagon_5_Train_or_the_zijspoor_is_updated_and_His_hand_is_shown_to_others_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Heuvel wagon 5")
         trainUpdate = self.output.match(["Trein [ROGBP][a-z]+ heeft 1 wagon."])
-        extraLocomotivesUpdate = self.output.match(["Er is plek voor nog maar 1 foute wagon op het zijspoor"])
+        extraLocomotivesUpdate = self.output.match(["Het zijspoor kan nog maar 1 foute wagon opvangen"])
         self.assertTrue(trainUpdate != extraLocomotivesUpdate)
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
@@ -255,7 +259,7 @@ class Just_started_2_player_game(unittest.TestCase):
 
     def test_After_request_for_room_on_zijspoor_Zijspoor_room_appears(self):
         self.director.parse(self.nick2, "Hoeveel plekken op het zijspoor hebben we nog?")
-        self.assertTrue(self.output.match(["Er is nog plek voor 2 foute wagons op het zijspoor"]))
+        self.assertTrue(self.output.match(["Het zijspoor kan nog 2 foute wagons opvangen"]))
 
     def test_After_request_for_waiting_track_Number_of_wagons_appear(self):
         self.director.parse(self.nick2, "Hoeveel wagons staan er nog op het wachtspoor?")
