@@ -2,7 +2,9 @@
 # -*- coding: latin-1 -*-
 
 import unittest
+from mock import Mock
 from ShuntingDirector import ShuntingDirector
+from HanabiGame import HanabiGame
 
 #Hmm, what has this behavior to do with being a director?
 class New_Director(unittest.TestCase):
@@ -122,6 +124,30 @@ class Two_player_game_in_setup(unittest.TestCase):
         self.assertTrue(self.output.match(["OK, dan beëindigen we het spel. En het was nog niet eens begonnen!"]))
         self.assertTrue(self.director._getGame(self.nick1) == None)
 
+class Game_with_no_wagons_left_on_waiting_track(unittest.TestCase):
+    def setUp(self):
+        self.output = MemoryStreamer()
+        self.director = ShuntingDirector(self.output)
+        self.nick1 = "Hans"
+        self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
+        self.nick2 = "David"
+        self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
+        self.director.parse(self.nick1, "We beginnen.")
+        self.director._getGame("Hans").getNumberOfCardsInDeck = Mock(return_value=0)
+
+    def test_After_player1_says_verwijder_3_Tells_last_round(self):
+        self.director.parse(self.nick1, "Verwijder 3")
+        self.assertTrue(self.output.match(["Let op: dit is de laatste ronde "]))
+
+    def test_After_one_move_Game_is_not_over_yet(self):
+        self.director.parse(self.nick1, "Verwijder 3")
+        self.assertFalse(self.output.match(["Het spel is afgelopen"]))
+
+    def test_After_two_moves_Game_is_over(self):
+        self.director.parse(self.nick1, "Verwijder 3")
+        self.director.parse(self.nick2, "Verwijder 3")
+        self.assertTrue(self.output.match(["Het spel is afgelopen"]))
+
 class Just_started_2_player_game(unittest.TestCase):
     def setUp(self):
         self.output = MemoryStreamer()
@@ -189,7 +215,7 @@ class Just_started_2_player_game(unittest.TestCase):
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1, "Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
 
-    def test_After_player1_says_Hint_David_Blauw_Player2_is_hinted_and_hints_left_become_7_and_it_is_told_who_is_next(self):
+    def test_After_player1_says_Hint_David_Blauw_Player2_is_hinted_and_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Hint David: Blauw")
         hintCount = 0
         if self.output.match(["%s heeft geen B-en" % self.nick2]):
@@ -199,7 +225,6 @@ class Just_started_2_player_game(unittest.TestCase):
         if self.output.match(["De wagons [1-5](, [1-5])* en [1-5] van %s zijn B-en." % self.nick2]):
             hintCount += 1
         self.assertEqual(hintCount, 1)
-        self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
 
     def test_After_requesting_kennis_Kennis_appears(self):
@@ -231,7 +256,7 @@ class Just_started_2_player_game(unittest.TestCase):
         self.director.parse(self.nick1, "Hint Blauw aan %s" % self.nick2)
         self.assertTrue(self.output.match(["Jammer %s, maar er mogen nu geen hints meer gegegeven worden." % self.nick1]))
 
-    def test_After_player1_says_Hint_David_3_Player_is_hinted_and_hints_left_become_7_and_it_is_told_who_is_next(self):
+    def test_After_player1_says_Hint_David_3_Player_is_hinted_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Hint speler David het prachtige getal van de eenheid: 3")
         hintCount = 0
         if self.output.match(["%s heeft geen 3-en." % self.nick2]):
@@ -241,7 +266,6 @@ class Just_started_2_player_game(unittest.TestCase):
         if self.output.match(["De wagons [1-5](, [1-5])* en [1-5] van %s zijn 3-en." % self.nick2]):
             hintCount += 1
         self.assertEqual(hintCount, 1)
-        self.assertTrue(self.output.match(["Er mogen nog 7 hints"]))
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
 
     def test_After_request_for_rules_Rules_appear(self):
