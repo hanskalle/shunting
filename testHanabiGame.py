@@ -159,6 +159,10 @@ class Just_started_2_player_game(unittest.TestCase):
             self.game.discard(1)
         self.assertEqual(self.game.getNumberOfCardsInDeck(), 30);
 
+    def test_Peeking_at_hand_of_undifined_player_looks_at_active_player(self):
+        for i in range(5):
+                self.assertEqual(self.game._peekHandCard(i+1), self.game._peekHandCard(i+1, self.game.getActivePlayer()))
+
 class Just_started_3_player_game(unittest.TestCase):
     def setUp(self):
         self.player1 = "Hans"

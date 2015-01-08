@@ -126,10 +126,11 @@ class ShuntingDirector():
         indicesString = indicesString.replace(".","")
         for index in indicesString:
             index = int(index)
-            if not index in indicesList:
-                if index <= maxIndex:
-                    indicesList.append(index)
-                    restIndices[index-1] = None
+            if index in indicesList:
+                return []
+            if index <= maxIndex:
+                indicesList.append(index)
+                restIndices[index-1] = None
         for index in restIndices:
             if not index is None:
                 indicesList.append(index)
@@ -200,8 +201,6 @@ class ShuntingDirector():
                 game.addPlayer(nick)
                 self._output(["Hoi %(nick)s, leuk dat je meedoet met het " + self.NAME + "-spel van %(owner)s."], dict)
                 self._tellJoinOrStart(game, dict)
-            else:
-                self._output(["Maar %(nick)s, je doet al mee met het " + self.NAME + "-spel van %(owner)s!"], dict)
         else:
             self._output(["Sorry %(nick)s, maar er is geen spel dat gestart is door %(owner)s."], dict)
 

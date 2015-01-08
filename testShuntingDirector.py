@@ -45,7 +45,11 @@ class Director_with_no_games_running(unittest.TestCase):
     def test_After_parsing_Laten_we_shunting_spelen_How_to_join_message_appear(self):
         self.director.parse(self.nick1, "Laten we Kijfhoek spelen.")
         self.assertTrue(self.output.match([".*speel mee"]))
-        
+
+    def test_After_parsing_Nick2_joins_nick1_Nick2_is_told_there_is_no_such_game(self):
+        self.director.parse(self.nick2, "Ik doe mee met %s!" % self.nick1)
+        self.assertTrue(self.output.match(["Sorry %s, maar er is geen spel dat gestart is door %s." % (self.nick2,  self.nick1)]))
+
 class One_player_game_in_setup(unittest.TestCase):
     def setUp(self):
         self.nick1 = "SomeOne"
@@ -94,6 +98,10 @@ class Two_player_game_in_setup(unittest.TestCase):
         self.assertTrue(self.output.privateMatch(self.nick1, ["Het opstelterrein van %s bevat de wagons: " % self.nick2]))
         self.assertTrue(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick1]))
         self.assertFalse(self.output.privateMatch(self.nick2, ["Het opstelterrein van %s bevat de wagons: " % self.nick2]))
+
+    def test_After_nick2_says_We_beginnen_He_is_told_only_the_owner_can_do_that(self):
+        self.director.parse(self.nick2, "We beginnen.")
+        self.assertTrue(self.output.match(["Sorry %s, alleen %s mag een spel laten beginnen" % (self.nick2,  self.nick1)]))
 
     def test_After_parsing_request_for_rule_Rules_appear(self):
         self.director.parse(self.nick2, "Wat zijn de spelregels?")
@@ -147,6 +155,10 @@ class Game_with_no_wagons_left_on_waiting_track(unittest.TestCase):
         self.director.parse(self.nick1, "Verwijder 3")
         self.director.parse(self.nick2, "Verwijder 3")
         self.assertTrue(self.output.match(["Het spel is afgelopen"]))
+
+    def test_After_request_for_waiting_track_Number_of_wagons_appear(self):
+        self.director.parse(self.nick2, "Hoeveel wagons staan er nog op het wachtspoor?")
+        self.assertTrue(self.output.match(["Het wachtspoor is leeg. Er zijn geen nieuwe wagons meer. We spelen de laatste ronde."]))
 
 class Just_started_2_player_game(unittest.TestCase):
     def setUp(self):
@@ -206,6 +218,10 @@ class Just_started_2_player_game(unittest.TestCase):
         newOrder = self.director._getGame(self.nick1).getHandCards(self.nick1)
         self.assertEqual(originalOrder, newOrder)
         self.assertFalse(self.output.match(["De beurt is aan %s." % self.nick2]))
+
+    def test_After_player1_says_Orden_wagons_44123_He_is_told_to_give_legal_ordering(self):
+        self.director.parse(self.nick1, "Orden wagons 44321")
+        self.assertTrue(self.output.match(["De opgegeven ordening klopt niet"]))
 
     def test_After_player1_says_Heuvel_wagon_5_Train_or_the_zijspoor_is_updated_and_His_hand_is_shown_to_others_and_it_is_told_who_is_next(self):
         self.director.parse(self.nick1, "Heuvel wagon 5")
@@ -267,6 +283,10 @@ class Just_started_2_player_game(unittest.TestCase):
             hintCount += 1
         self.assertEqual(hintCount, 1)
         self.assertTrue(self.output.match(["De beurt is aan %s." % self.nick2]))
+
+    def test_After_player1_says_Hint_player1_Player_is_told_that_is_not_allowed(self):
+        self.director.parse(self.nick1, "Hint speler %s 3" % self.nick1)
+        self.assertTrue(self.output.match([".*jezelf hinten is niet toegestaan"]))
 
     def test_After_request_for_rules_Rules_appear(self):
         self.director.parse(self.nick2, "Wat zijn de spelregels?")
