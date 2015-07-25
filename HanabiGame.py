@@ -2,20 +2,22 @@ __module_name__ = "HanabiGame"
 __module_version__ = "1.1"
 __module_description__ = "Hanabi Game."
 
+
 class HanabiGame:
     SETUP = 1
     ON = 2
     OVER = 3
-    
+
     COLORS = "ROGBP"
     MAX_HINTS = 8
     MAX_THUNDERSTORMS = 3
     MIN_PLAYERS = 2
     MAX_PLAYERS = 5
     MAX_SCORE = len(COLORS) * 5
-    
+
     def __init__(self, owner):
         self._state = self.SETUP
+        self._activePlayer = None
         self._hints = self.MAX_HINTS
         self._thunderstorms = self.MAX_THUNDERSTORMS
         self._initDeck()
@@ -24,7 +26,7 @@ class HanabiGame:
         self._initPlayers()
         self.addPlayer(owner)
 
-    def _initDeck(self):        
+    def _initDeck(self):
         self._generateDeck()
         self._shuffleDeck()
 
@@ -34,7 +36,7 @@ class HanabiGame:
             for i in range(3):
                 self._deck.append(color + "1")
             for i in range(2):
-                for number in range(2,5):
+                for number in range(2, 5):
                     self._deck.append(color + str(number))
             self._deck.append(color + "5")
 
@@ -46,7 +48,7 @@ class HanabiGame:
         if len(self._deck) == 0:
             Exception("Cannot draw from empty deck.")
         return self._deck.pop()
-        
+
     def _removeCardFromDeck(self, card):
         self._deck.remove(card)
 
@@ -90,7 +92,7 @@ class HanabiGame:
         if player == self._players[0]:
             raise Exception("You must not remove the owner of the game.")
         self._players.remove(player)
-        del(self._hands[player])
+        del (self._hands[player])
 
     def getOwner(self):
         return self._players[0]
@@ -106,7 +108,7 @@ class HanabiGame:
 
     def getHandCards(self, player):
         return self._hands[player]
-        
+
     def getMaxHandCards(self):
         if self.getNumberOfPlayers() <= 3:
             return 5
@@ -130,21 +132,21 @@ class HanabiGame:
 
     def _addCardToHand(self, card, player):
         self._hands[player].append(card)
-        
+
     def reorderHandCards(self, player, order):
         oldHand = self._hands[player]
         numberOfHandCards = len(oldHand)
         if len(order) != len(oldHand):
             raise Exception("Reordening does not match the number of hand cards.")
-        for i in range(numberOfHandCards-1):
+        for i in range(numberOfHandCards - 1):
             index = order[i]
             if index < 1 or numberOfHandCards < index:
                 raise Exception("Reordering index out of bound.")
-            if index in order[i+1:]:
+            if index in order[i + 1:]:
                 raise Exception("Reordering indexes should be unique.")
         self._hands[player] = []
         for index in order:
-            self._hands[player].append(oldHand[index-1])
+            self._hands[player].append(oldHand[index - 1])
 
     def _initFireworks(self):
         self._Fireworks = {}
@@ -161,7 +163,7 @@ class HanabiGame:
 
     def _addToFirework(self, card):
         if not self._canBeAddedToFirework(card):
-           raise Exception("Card cannot be added to a firework.")
+            raise Exception("Card cannot be added to a firework.")
         color = self.getCardColor(card)
         self._Fireworks[color].append(card)
         if self.getFireworkLength(color) == 5:
@@ -176,7 +178,7 @@ class HanabiGame:
 
     def getThunderstormsLeft(self):
         return self._thunderstorms
-        
+
     def _decreaseThunderstorms(self):
         if self._thunderstorms > 0:
             self._thunderstorms -= 1
@@ -222,7 +224,7 @@ class HanabiGame:
         self._activePlayer = self._players[0]
 
     def isLastRound(self):
-        return self.getNumberOfCardsInDeck() ==0
+        return self.getNumberOfCardsInDeck() == 0
 
     def _nextTurn(self):
         if not self.isOn():
@@ -242,18 +244,20 @@ class HanabiGame:
         self._increaseHints()
         self._nextTurn()
 
-    def getCardColor(self, card):
+    @staticmethod
+    def getCardColor(card):
         return card[0]
 
-    def _getCardNumber(self, card):
+    @staticmethod
+    def _getCardNumber(card):
         return int(card[1])
 
     def _getAndRemoveCardFromHandRepleting(self, index):
-        card = self._hands[self._activePlayer][index-1]
-        del(self._hands[self._activePlayer][index-1])
+        card = self._hands[self._activePlayer][index - 1]
+        del (self._hands[self._activePlayer][index - 1])
         if not self.isLastRound():
             newCard = self._getCardFromDeck()
-            self._hands[self._activePlayer].insert(index-1, newCard)
+            self._hands[self._activePlayer].insert(index - 1, newCard)
         else:
             self._discardHand()
         return card
@@ -311,7 +315,7 @@ class HanabiGame:
     def _peekHandCard(self, index, player=None):
         if player is None:
             player = self._activePlayer
-        return self._hands[player][index-1]
+        return self._hands[player][index - 1]
 
     def getScore(self):
         score = 0
